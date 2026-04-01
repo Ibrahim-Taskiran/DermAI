@@ -1,11 +1,12 @@
 {
   "hastaliklar": {
-    "akne": {
-      "display_name": "Akne (Sivilce)",
+    "acne_and_rosea": {
+      "display_name": "Akne ve Rosacea",
       "care": "Cildinizi günde iki kez nazik bir temizleyici ile yıkayın ve sivilceleri sıkmaktan kaçının.",
       "recommendation": "Yağsız (non-comedogenic) güneş kremleri ve nemlendiriciler kullanmaya özen gösterin.",
-      "doctor_warning": "Sivilceler ağrılı kistlere dönüşürse veya iz bırakmaya başlarsa bir dermatoloğa danışmalısınız.",
-      "risk_level": "düşük"
+      "doctor_warning": "Kistik yapılar oluşması veya gözlerde hassasiyet yaşanması durumunda uzman bir dermatoloğa muayene olmanız önerilir.",
+      "risk_level": "düşük",
+      "reference": "Mayoclinic & AAD (American Academy of Dermatology)"
     },
     "sedef": {
       "display_name": "Sedef (Psoriasis)",
