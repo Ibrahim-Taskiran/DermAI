@@ -1,6 +1,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    kotlin("kapt")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -28,12 +31,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -41,7 +44,7 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
 }
 
@@ -58,6 +61,32 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    // Hilt - Bağımlılık Enjeksiyonu
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.hilt.navigation.compose)
+
+    // CameraX - Kamera Entegrasyonu
+    implementation(libs.camerax.core)
+    implementation(libs.camerax.camera2)
+    implementation(libs.camerax.lifecycle)
+    implementation(libs.camerax.view)
+
+    // Coil - Görsel Yükleme
+    implementation(libs.coil.compose)
+
+    // Compose Navigation - Ekranlar Arası Geçiş
+    implementation(libs.navigation.compose)
+
+    // Retrofit + OkHttp (TODO: Backend hazır olunca aktif edilecek)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
+
+    // Accompanist - İzin Yönetimi
+    implementation(libs.accompanist.permissions)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -68,4 +97,9 @@ dependencies {
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+// Hilt için gerekli kapt konfigürasyonu
+kapt {
+    correctErrorTypes = true
 }
