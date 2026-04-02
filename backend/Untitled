@@ -1,0 +1,6 @@
+app/                 # Kodlarının asıl duracağı yer
+    │   ├── 📁 api/             # İbrahim'in (Mobil) bağlanacağı endpointler
+    │   ├── 📁 core/            # Hadi Said'in modelini çalıştıracak kodlar
+    │   └── 📁 data/            # Aybüke'den gelen JSON içeriklerinin kopyası
+    ├── 📁 .env                 # Ortam değişkenleri (API anahtarları, geliştirme ayarları)
+    

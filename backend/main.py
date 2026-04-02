@@ -1,0 +1,1 @@
+"Uygulamanın giriş noktası (FastAPI burada başlar)"
