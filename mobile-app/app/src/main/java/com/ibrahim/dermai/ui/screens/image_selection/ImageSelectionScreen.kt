@@ -37,22 +37,18 @@ fun ImageSelectionScreen(
     val context = LocalContext.current
     val selectedUri by viewModel.selectedImageUri.collectAsState()
 
-    // Kamera için geçici dosya URI'sini tutacak state (camera launcher çalışmadan önce oluşturulmalı)
     var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Galeri seçici
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
             uri?.let {
                 viewModel.onImageSelected(it)
-                // Gerçek sistem yoluna veya Content URI stringine dönüştür
                 onImageSelected(it.toString())
             }
         }
     )
 
-    // Kamera çekicisi
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture(),
         onResult = { success ->
@@ -83,7 +79,6 @@ fun ImageSelectionScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            // Daha önce seçilen resmi göstermek içn opsiyonel alan (tasarım açısından)
             if (selectedUri != null) {
                 Image(
                     painter = rememberAsyncImagePainter(model = selectedUri),
@@ -115,7 +110,6 @@ fun ImageSelectionScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // Kamera Butonu
             Button(
                 onClick = {
                     val uri = createTempImageUri(context)
@@ -132,7 +126,7 @@ fun ImageSelectionScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Galeri Butonu
+            
             OutlinedButton(
                 onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
