@@ -1,0 +1,70 @@
+{
+  "hastaliklar": {
+    "acne_and_rosea": {
+      "display_name": "Akne ve Rosacea",
+      "care": "Cildinizi günde iki kez nazik bir temizleyici ile yıkayın ve sivilceleri sıkmaktan kaçının.",
+      "recommendation": "Yağsız (non-comedogenic) güneş kremleri ve nemlendiriciler kullanmaya özen gösterin.",
+      "doctor_warning": "Kistik yapılar oluşması veya gözlerde hassasiyet yaşanması durumunda uzman bir dermatoloğa muayene olmanız önerilir.",
+      "risk_level": "düşük",
+      "reference": "Mayoclinic & AAD (American Academy of Dermatology)"
+    },
+    "sedef": {
+      "display_name": "Sedef (Psoriasis)",
+      "care": "Cildinizi nemli tutun ve kaşıntıyı azaltmak için soğuk kompres uygulayın.",
+      "recommendation": "Düzenli olarak doktorunuzun önerdiği topikal tedavileri kullanın.",
+      "doctor_warning": "Sedef hastalığı eklemlerde ağrıya neden oluyorsa veya yayılıyorsa bir dermatoloğa başvurmalısınız.",
+      "risk_level": "orta"
+    },
+    "egzama": {
+      "display_name": "Egzama (Atopik Dermatit)",
+      "care": "Cildinizi düzenli olarak nemlendirin ve tahriş edici maddelerden kaçının.",
+      "recommendation": "Ilık suyla banyo yapın ve sert sabunlardan uzak durun.",
+      "doctor_warning": "Egzama şiddetliyse veya enfekte olmuşsa bir dermatoloğa danışmalısınız.",
+      "risk_level": "orta"
+    },
+    "rosacea": {
+      "display_name": "Rosacea",
+      "care": "Yüzünüzü nazikçe temizleyin ve aşırı sıcak veya soğuk ortamlardan kaçının.",
+      "recommendation": "Güneş koruyucu kullanarak cildinizi güneşin zararlı etkilerinden koruyun.",
+      "doctor_warning": "Rosacea belirtileri kötüleşirse veya gözlerinizi etkiliyorsa bir dermatoloğa başvurmalısınız.",
+      "risk_level": "düşük"
+    },
+    "vitiligo": {
+      "display_name": "Vitiligo",
+      "care": "Cildinizi güneşten koruyun ve tahriş edici maddelerden kaçının.",
+      "recommendation": "Düzenli olarak doktorunuzun önerdiği tedavileri uygulayın.",
+      "doctor_warning": "Vitiligo hızla yayılıyorsa veya psikolojik olarak sizi etkiliyorsa bir dermatoloğa danışmalısınız.",
+      "risk_level": "düşük"
+    },
+    "melanom": {
+      "display_name": "Melanom",
+      "care": "Güneşten korunmak için geniş spektrumlu güneş koruyucu kullanın ve düzenli olarak cildinizi kontrol edin.",
+      "recommendation": "Şüpheli lekeler veya değişiklikler fark ederseniz hemen bir dermatoloğa başvurun.",
+      "doctor_warning": "Melanom hızla yayılabilir, bu nedenle erken teşhis ve tedavi çok önemlidir.",
+      "risk_level": "yüksek"
+    },
+    "kontakt_dermatit": {
+      "display_name": "Kontakt Dermatit",
+      "care": "Tahriş edici maddelerden kaçının ve cildinizi temiz tutun.",
+      "recommendation": "Kaşıntıyı azaltmak için soğuk kompres uygulayın ve doktorunuzun önerdiği topikal tedavileri kullanın.",
+      "doctor_warning": "Kontakt dermatit şiddetliyse veya enfekte olmuşsa bir dermatoloğa danışmalısınız.",
+      "risk_level": "düşük"
+    },
+    "hirsutism": {
+      "display_name": "Hirsutism (Aşırı Tüylenme)",
+      "care": "Tüy alma yöntemlerini kullanarak istenmeyen tüyleri düzenli olarak temizleyin.",
+      "recommendation": "Hormonal dengesizlikler için bir endokrinologa danışarak uygun tedavi seçeneklerini değerlendirin.",
+      "doctor_warning": "Hirsutism hızla kötüleşirse veya hormonal dengesizlik belirtileri gösterirse bir doktora başvurmalısınız.",
+      "risk_level": "düşük"
+    },
+    "alopesi": {
+      "display_name": "Alopesi (Saç Dökülmesi)",
+      "care": "Saçınızı nazikçe yıkayın ve aşırı ısı veya kimyasal işlemlerden kaçının.",
+      "recommendation": "Düzenli olarak doktorunuzun önerdiği tedavileri uygulayın ve sağlıklı bir diyetle saç sağlığınızı destekleyin.",
+      "doctor_warning": "Alopesi hızla kötüleşirse veya saç dökülmesi geniş bir alana yayılıyorsa bir dermatoloğa danışmalısınız.",
+      "risk_level": "düşük"
+    }
+   
+     
+  }
+}
