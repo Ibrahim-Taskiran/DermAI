@@ -7,30 +7,36 @@
 
     <!-- Kamera izni: CameraX görüntü çekme için -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Kamera özelliğini opsiyonel yapalım (Chromebook vb. cihazda hata vermemesi için) -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
     <!-- Galeri okuma için (Android 13 altı) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
 
     <!-- Galeri okuma için (Android 13+) -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
+        tools:ignore="SelectedPhotoAccess" />
+
+    <!-- Android 14+ Kısmi Fotoğraf Seçimi Desteği -->
+    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
     <application
         android:name=".DermAIApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:targetApi="31"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.DermAI">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.DermAI">
+            android:theme="@style/Theme.DermAI.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

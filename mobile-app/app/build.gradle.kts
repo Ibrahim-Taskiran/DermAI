@@ -49,7 +49,10 @@ android {
 }
 
 dependencies {
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
+
+    // Android 12+ sistem splash ile Compose açılış ekranını hizalar (launcher ikonunun tek başına görünmesini engeller)
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -76,6 +79,9 @@ dependencies {
 
     // Coil - Görsel Yükleme
     implementation(libs.coil.compose)
+
+    // Sceneview - 3D/AR Gösterimi
+    implementation(libs.sceneview)
 
     // Compose Navigation - Ekranlar Arası Geçiş
     implementation(libs.navigation.compose)

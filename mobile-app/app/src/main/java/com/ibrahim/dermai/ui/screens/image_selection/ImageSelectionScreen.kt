@@ -1,162 +1,388 @@
 package com.ibrahim.dermai.ui.screens.image_selection
 
-import android.content.Context
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.TipsAndUpdates
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
-import java.io.File
+import com.ibrahim.dermai.ui.theme.DermPrimary
+import com.ibrahim.dermai.ui.theme.DermSecondary
 
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.IconButton
+
+/**
+ * Kamera veya galeriden fotoğraf seçme ekranı.
+ * Artık CameraScreen'e yönlendirme yapar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageSelectionScreen(
     modifier: Modifier = Modifier,
     viewModel: ImageSelectionViewModel = hiltViewModel(),
-    onImageSelected: (String) -> Unit
+    onOpenCamera: () -> Unit,
+    onImageSelectedFromGallery: (String) -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onOpenTracker: () -> Unit
 ) {
-    val context = LocalContext.current
     val selectedUri by viewModel.selectedImageUri.collectAsState()
 
-    // Kamera için geçici dosya URI'sini tutacak state (camera launcher çalışmadan önce oluşturulmalı)
-    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
-
     // Galeri seçici
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
+    val galleryLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent(),
         onResult = { uri: Uri? ->
             uri?.let {
                 viewModel.onImageSelected(it)
-                // Gerçek sistem yoluna veya Content URI stringine dönüştür
-                onImageSelected(it.toString())
+                onImageSelectedFromGallery(it.toString())
             }
         }
     )
 
-    // Kamera çekicisi
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture(),
-        onResult = { success ->
-            if (success && tempCameraUri != null) {
-                viewModel.onImageSelected(tempCameraUri)
-                onImageSelected(tempCameraUri.toString())
-            }
-        }
-    )
+    val buttonHeight = 60.dp
+    val buttonShape = RoundedCornerShape(16.dp)
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Görsel Seçimi", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = Color.White
+            LargeTopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = "Görsel Seçimi",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 28.sp
+                        )
+                        Text(
+                            text = "Analiz için bir fotoğraf seçin",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToSettings) {
+                        Icon(
+                            Icons.Outlined.Settings,
+                            contentDescription = "Profil Ayarları"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground
                 )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Daha önce seçilen resmi göstermek içn opsiyonel alan (tasarım açısından)
-            if (selectedUri != null) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = selectedUri),
-                    contentDescription = "Seçilen Görsel",
-                    modifier = Modifier
-                        .size(200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.LightGray),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-            } else {
+            // ── Görsel Önizleme Alanı ──
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp)
+                    .animateContentSize(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
                 Box(
-                    modifier = Modifier
-                        .size(200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color.Gray.copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Henüz bir alan seçilmedi")
+                    if (selectedUri != null) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = selectedUri),
+                            contentDescription = "Seçilen Görsel",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(24.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.4f)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(
+                                        bottomStart = 24.dp,
+                                        bottomEnd = 24.dp
+                                    )
+                                )
+                        )
+                        Text(
+                            text = "Fotoğraf seçildi ✓",
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 16.dp)
+                        )
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(80.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.ImageSearch,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Henüz bir görsel seçilmedi",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Aşağıdaki seçenekleri kullanın",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.height(32.dp))
             }
 
-            Text(
-                text = "Lütfen analiz edilecek bölgenin fotoğrafını çekin veya galeriden yükleyin.",
-                fontSize = 16.sp,
-                color = Color.DarkGray,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // Kamera Butonu
+            // ── Kamera Butonu (CameraScreen'e yönlendirir) ──
             Button(
-                onClick = {
-                    val uri = createTempImageUri(context)
-                    tempCameraUri = uri
-                    cameraLauncher.launch(uri)
-                },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(12.dp)
+                onClick = onOpenCamera,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(buttonHeight),
+                shape = buttonShape,
+                colors = ButtonDefaults.buttonColors(containerColor = DermPrimary),
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp
+                )
             ) {
-                Icon(Icons.Default.CameraAlt, contentDescription = "Kamera")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Kamera ile Çek", fontSize = 16.sp)
+                Icon(
+                    Icons.Default.CameraAlt,
+                    contentDescription = "Kamera",
+                    modifier = Modifier.size(22.dp),
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    "Fotoğraf Çek",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Galeri Butonu
-            OutlinedButton(
+            // ── Galeri Butonu ──
+            Button(
                 onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(buttonHeight)
+                    .border(
+                        width = 1.5.dp,
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(DermPrimary, DermSecondary)
+                        ),
+                        shape = buttonShape
+                    ),
+                shape = buttonShape,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
             ) {
-                Icon(Icons.Default.PhotoLibrary, contentDescription = "Galeri")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Galeriden Seç", fontSize = 16.sp)
+                Icon(
+                    Icons.Default.PhotoLibrary,
+                    contentDescription = "Galeri",
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    "Galeriden Yükle",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ── Geçmiş Analizler Butonu ──
+            OutlinedButton(
+                onClick = onOpenTracker,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(buttonHeight),
+                shape = buttonShape
+            ) {
+                Icon(
+                    Icons.Outlined.History,
+                    contentDescription = "Geçmiş",
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    "Geçmiş Analizler",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            // ── Bilgi Kartı ──
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.TipsAndUpdates,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "İpuçları",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TipItem("Cilt bölgesinin net ve yakın çekim fotoğrafını kullanın")
+                        TipItem("İyi aydınlatılmış bir ortamda çekim yapın")
+                        TipItem("Fotoğrafın bulanık olmamasına dikkat edin")
+                        TipItem("Sadece analiz edilecek bölgeyi kadrajlayın")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
 
-/**
- * Kamera için geçici bir dosya ve onun URI'sini oluşturan yardımcı fonksiyon.
- */
-private fun createTempImageUri(context: Context): Uri {
-    val tempFile = File.createTempFile("camera_image_", ".jpg", context.cacheDir).apply {
-        createNewFile()
-        deleteOnExit()
+@Composable
+private fun TipItem(text: String) {
+    Row(
+        modifier = Modifier.padding(vertical = 3.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Text(
+            text = "•",
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(end = 8.dp, top = 1.dp)
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+            lineHeight = 18.sp
+        )
     }
-    return FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        tempFile
-    )
 }
