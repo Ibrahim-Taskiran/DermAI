@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Callable
 
 from PIL import Image
 from torch.utils.data import Dataset
-
+from config import EXPERT_CLASSES, CLASS_MAPPING, IMAGE_SIZE
 
 class DermAIDataset(Dataset):
     """
@@ -17,9 +17,9 @@ class DermAIDataset(Dataset):
     def __init__(
         self,
         root_dir: str,
-        allowed_classes: Optional[List[str]] = None,
+        allowed_classes: Optional[List[str]] = EXPERT_CLASSES,
         transform: Optional[Callable] = None,
-        class_mapping: Optional[dict] = None,
+        class_mapping: Optional[dict] = CLASS_MAPPING,
     ):
         """
         Initializes the DermAIDataset.
@@ -27,10 +27,11 @@ class DermAIDataset(Dataset):
         Args:
             root_dir (str): Path to the root dataset directory (e.g., 'Dataset/train' or 'Dataset/test').
             allowed_classes (Optional[List[str]]): A list of specific class names to load.
-                                                   If None, loads all subfolders in root_dir.
+                                                   Defaults to EXPERT_CLASSES from config.py.
             transform (Optional[Callable]): A function/transform that takes in a PIL image
                                             and returns a transformed version.
             class_mapping (Optional[dict]): A dictionary mapping folder names to unified class names.
+                                            Defaults to CLASS_MAPPING from config.py.
         """
         self.root_dir = root_dir
         self.transform = transform
@@ -65,6 +66,8 @@ class DermAIDataset(Dataset):
         self.samples: List[Tuple[str, int]] = []
         valid_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
         
+        class_paths = {cls_name: [] for cls_name in self.classes}
+        
         for folder in all_folders:
             cls_name = self.folder_to_class[folder]
             
@@ -81,7 +84,14 @@ class DermAIDataset(Dataset):
                     img_path = os.path.abspath(os.path.normpath(os.path.join(cls_dir, file_name)))
                     # Check that the file actually exists
                     if os.path.isfile(img_path):
-                        self.samples.append((img_path, class_idx))
+                        class_paths[cls_name].append((img_path, class_idx))
+                        
+        # Cap images at 500 per class using a fixed random seed
+        for cls_name, paths in class_paths.items():
+            if len(paths) > 500:
+                random.seed(42)
+                paths = random.sample(paths, 500)
+            self.samples.extend(paths)
 
     def __len__(self) -> int:
         """Returns the total number of samples in the dataset."""

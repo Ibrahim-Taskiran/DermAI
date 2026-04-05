@@ -1,33 +1,37 @@
-# DermAI Yapay Zeka Modelleri - Dosya Açıklamaları
+# DermAI: Derin Öğrenme Tabanlı Dermatolojik Tarama Sistemi
 
-Bu dizin (`ai-model`), DermAI projesinin derin öğrenme (yapay zeka) tarafını oluşturan Python betiklerini içerir. Aşağıda bu klasörde bulunan her bir `.py` uzantılı dosyanın ne işe yaradığı detaylı bir şekilde açıklanmıştır:
+## Proje Başlığı ve Genel Bakış
+**DermAI**, dermatolojik rahatsızlıkların tespitinde yüksek hassasiyetli klinik tanı desteği sağlamak üzere tasarlanmış, Derin Öğrenme (Deep Learning) tabanlı yenilikçi bir tarama aracıdır. Temel amacı, cilt lezyonlarını analiz ederek teşhis süreçlerinde doktorlara ve tıbbi uzmanlara güvenilir, hızlı ve yapay zeka destekli bir ikinci görüş (second opinion) sunmaktır.
 
-### 1. `dataset.py`
-PyTorch için özel bir veri kümesi (Dataset) sınıfı olan `DermAIDataset`'i tanımlar. Resimleri diskteki klasör mimarisinden okur, klasör adlarını sınıf etiketlerine dönüştürür. Hatalı dosyaları atlayıp eksik veri durumlarını yönetir ve modellere beslenmeye hazır veri çiftleri oluşturur.
+## Sinir Ağı Mimarisi
+- **EfficientNet-B0 Omurgası:** Modelin temel feature-extractor (özellik çıkarıcı) mimarisi olarak güçlü ve hafif yapısıyla **EfficientNet-B0** kullanılmıştır.
+- **Bileşik Ölçeklendirme (Compound Scaling):** Bu mimarinin tercih edilme sebebi; ağın derinliğini, genişliğini ve giriş çözünürlüğünü matematiksel olarak dengeli bir şekilde ölçeklendirebilmesidir. Böylece VRAM (donanım kısıtlamaları) aşılmadan maksimum başarılı sonuç alınır.
+- **Özelleştirilmiş Sınıflandırıcı Başlık (Classifier Head):** Sadece hedeflediğimiz uzmanlık sınıflarını tahmin etmek üzere ağın sonuna projemize özel dinamik bir sınıflandırma katmanı entegre edilmiştir.
 
-### 2. `engine.py`
-Modelin eğitim (train) ve doğrulama (validation) aşamalarının çekirdek döngülerini barındırır. Ekran kartı belleğinden tasarruf sağlamak için *Automatic Mixed Precision (AMP)* yapısını kullanır. Her epoch (çağ) sonrası model ağırlıklarını kaydeder (checkpoint) ve analiz için detaylı sınıflandırma raporları (Precision, Recall, F1) üretir.
+## "Dengeli Uzman" (Balanced Expert) Stratejisi
+- **Veri Mühendisliği ve Sınırlandırma (Capping):** Veri setindeki aşırı sınıf dengesizliğini (class imbalance) önlemek amacıyla, modelin yanlılık (bias) geliştirmemesi için her sınıf maksimum **500 görsel** ile sınırlandırılmıştır. İstatistiksel olarak sağlığı zayıf olan (250 görselden az) sınıflar ise analizden tamamen çıkarılmıştır.
+- **Optimizasyon ve Ağırlıklandırma:** Hızlı ve istikrarlı yakınsama (convergence) sağlamak için **OneCycleLR** öğrenme oranı zamanlayıcısı kullanılmıştır. Ayrıca sistem, geçmiş fazlardan kalma Sınıf Ağırlıkları (Class Weights) stratejisi gözetilerek evrimleştirilmiştir.
 
-### 3. `inference.py`
-Dışarıdan verilen tek bir tıbbi görüntü üzerinde çıkarım (inference) yapmak için `predict_image` fonksiyonunu kullanır. Görüntüyü alır, modelden geçirir ve en yüksek olasılığa sahip 3 hastalık sınıfını, kullanıcı arayüzünde (UI) kolayca gösterilebilmesi için JSON/Sözlük formatında geri döndürür.
+## Veri Ön İşleme (Data Preprocessing)
+- **Akıllı Dolgu (Smart Padding / Letterboxing):** Dermatolojik verilerin tıbbi bütünlüğünü bozmamak esastır. Orijinal görüntü formunu (en-boy oranını) bozup cilt dokularını esnetmek yerine, görsellerin kenarlarına kare yapacak şekilde siyah bantlar ekleyen Letterboxing yöntemi kullanılmıştır.
+- **Veri Artırma (Data Augmentation):** Modelin başarısını ve genelleme yeteneğini artırmak için PyTorch `v2` Transforms kullanılarak Rastgele Döndürme (Rotation), Çevirme (Flip) ve Renk Titremesi (Color Jitter) gibi agresif artırma teknikleri uygulanmıştır.
 
-### 4. `main.py`
-Sistemin çalışabilirliğini test etmek için kullanılan bir deneme (dry-run) betiğidir. Uzun sürecek asıl eğitimi başlatmadan önce; modelin, transformasyonların, sınıfların ve veri kümelerinin başarılı bir şekilde entegre olup olmadığını sahte (dummy) bir resim üreterek uçtan uca test eder.
+## Dosya Yapısı ve Görevleri
+Sistem modüler bir yaklaşımla, tek gerçeklik kaynağı prensibine uygun olarak inşa edilmiştir. Çalışma alanındaki her bir dosyanın tanımı aşağıdadır:
 
-### 5. `model.py`
-Yapay zeka ağ mimarisinin yapılandırıldığı dosyadır. Temel özellik çıkarıcı olarak `EfficientNet-B0` ağını kullanır ve son sınıflandırma katmanını DermAI projesinin sınıflarına göre düzenler. Aynı zamanda hedef cihazın bellek (VRAM) sınırlarını aşmamak için model parametrelerini özetleyen yardımcı bir fonksiyon (summary) içerir.
+| Dosya Adı | Açıklama ve Görev |
+| :--- | :--- |
+| `config.py` | Sınıf isimleri, dönüşüm haritaları ve hiperparametreler (IMAGE_SIZE, vs.) için **"Tek Gerçeklik Kaynağı"** (Single Source of Truth). |
+| `train.py` | Modeli eğiten, kayıp fonksiyonlarını hesaplayan ve optimizasyon mantığını çalıştıran ana eğitim döngüsü. |
+| `model.py` | EfficientNet-B0 mimarisinin tanımlandığı ve sistem modelini oluşturan betik. |
+| `dataset.py` | 500 görselle sınırlandırma (capping) mantığını yürüten ve verileri yükleyen özel **PyTorch Dataset** sınıfı. |
+| `transforms.py` | Veri artırma (augmentation) algoritmalarını ve Akıllı Dolgu (Smart Padding) işlem hattını tanımlar. |
+| `predict.py` | Eğitilmiş modeli kullanarak tek bir görsel üzerinde analiz yapan, UI entegrasyonuna uygun JSON çıktısı üreten çıkarım (inference) betiği. |
+| `audit_model.py` | Eğitim sonrası şampiyon modelin Karmaşıklık Matrislerini (Confusion Matrix) çıkaran ve F1-Skorlarını test eden değerlendirme paketi. |
+| `database_report.py` | Veri setinin sınıflar arası dağılımını, veri sağlığını ve oranlarını analiz edip grafikler üreten analiz modülü. |
 
-### 6. `predict.py`
-Komut satırı üzerinden pratik bir şekilde tahmin (predict) işlemlerini gerçekleştirmek için hazırlanmış çalıştırılabilir (CLI) bir betiktir. Kullanıcıdan bir görüntü yolu ve eğitilmiş model konumunu alır, sonucu değerlendirerek potansiyel tehlike düzeyine göre hastaya klinik bir tavsiye (recommendation) metni üretir.
-
-### 7. `scan_dataset.py`
-Veri setinin yapısını analiz eden bir yardımcı araçtır. Veri dizinlerini tarar ve hangi hastalık sınıfında (klasörde) kaç adet görüntü olduğunu sayarak terminale bir özet tablosu olarak basar. Sınıflar arası dengesizliği (class imbalance) tespit etmek için kullanılır.
-
-### 8. `split_data.py`
-Ham veri setini (Raw_Dataset) işlenebilir formlara ayırmak için kullanılır. Görüntüleri rastgele karıştırır ve varsayılan olarak %80 eğitim (train), %20 doğrulama (val/test) oranında bölerek ilgili klasörlere otomatik kopyalama işlemini gerçekleştirir.
-
-### 9. `train.py`
-Eğitim sürecini fiilen başlatan **ana (entry point)** betiktir. Epoch sayısı, batch size, öğrenme oranı (learning rate) gibi hiperparametreleri tanımlar. Modeli donanıma (GPU vb.) yükler, kayıp (loss) mekanizması ile sınıf dengesizlikleri için ağırlıklandırma yapar ve eğitim döngüsünü `engine.py` üzerinden ateşler.
-
-### 10. `transforms.py`
-Makine öğrenmesi modelleri için yapay veri artırma (Data Augmentation) ve ön işleme (Preprocessing) tekniklerini içerir. Eğitim setindeki görüntüleri döndürme, aydınlatma, pad ekleme ve yeniden boyutlandırma gibi işlemlerden (`get_train_transforms`) geçirirken analiz sırasında uygulanacak kısıtlı doğrulama yöntemlerini (`get_val_transforms`) belirler.
+## Performans Metrikleri
+Modelin final 6 sınıflı "Balanced Expert" fazında değerlendirilmesi sonucunda ulaşılan başarımlar şöyledir:
+- **Genel Doğruluk (Final Accuracy):** `%84.03`
+- **Makro F1-Skoru (Macro F1-Score):** `0.81`
+- **Sağlıklı Doku Başarısı:** 'Normal' sınıfı testlerinde modelin teşhis etme doğruluğu `%97 - %100` aralığında kusursuza yakın bir seviye sergilemektedir.

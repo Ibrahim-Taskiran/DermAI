@@ -9,28 +9,12 @@ from transforms import get_train_transforms, get_val_transforms
 from dataset import DermAIDataset
 from model import build_dermai_model
 from engine import train_model
+from config import EXPERT_CLASSES, CLASS_MAPPING, IMAGE_SIZE, BATCH_SIZE
 
 # Hyperparameters
-BATCH_SIZE = 32
-EPOCHS = 15
+EPOCHS = 20
 LEARNING_RATE = 5e-4
 DATASET_ROOT = "./Dataset"
-
-EXPERT_CLASSES = [
-    'Acne and Rosacea Photos', 
-    'Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions', 
-    'Eczema (Atopic Dermatitis)', 
-    'Exanthems and Drug Eruptions', 
-    'Light Diseases and Disorders of Pigmentation', 
-    'Seborrheic Keratoses and other Benign Tumors', 
-    'Tinea Ringworm Candidiasis and other Fungal Infections', 
-    'Warts Molluscum and other Viral Infections'
-]
-
-CLASS_MAPPING = {
-    'Eczema Photos': 'Eczema (Atopic Dermatitis)',
-    'Atopic Dermatitis Photos': 'Eczema (Atopic Dermatitis)'
-}
 
 def main() -> None:
     """
@@ -44,7 +28,7 @@ def main() -> None:
     print(f"Using device: {device.type.upper()}")
 
     # 1. Initialize Transforms
-    target_size = 224
+    target_size = IMAGE_SIZE
     train_transforms = get_train_transforms(target_size=target_size)
     val_transforms = get_val_transforms(target_size=target_size)
 
@@ -68,23 +52,6 @@ def main() -> None:
     
     print(f"Loaded {len(train_dataset)} training images and {len(val_dataset)} validation images.")
     print(f"Identified {len(train_dataset.classes)} unique classes.")
-
-    # Calculate class weights for CrossEntropyLoss
-    total_samples = len(train_dataset.samples)
-    num_classes = len(train_dataset.classes)
-    class_counts = [0] * num_classes
-    for _, class_idx in train_dataset.samples:
-        class_counts[class_idx] += 1
-    
-    weights = []
-    for count in class_counts:
-        # Avoid division by zero
-        if count == 0:
-            weights.append(0.0)
-        else:
-            weights.append(total_samples / (num_classes * count))
-            
-    class_weights = torch.tensor(weights, dtype=torch.float32)
 
     # Extract class names to pass to the engine for classification report
     class_names = train_dataset.classes
@@ -115,7 +82,7 @@ def main() -> None:
     model = model.to(device)
 
     # 5. Optimizer, Loss & Scheduler Configuration
-    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
     
     # 1CycleLR strategy for faster and more accurate convergence

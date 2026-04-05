@@ -5,18 +5,7 @@ import os
 from model import build_dermai_model
 from transforms import get_val_transforms
 from inference import predict_image
-
-# Use the exact same classes from your Super-Expert training phase
-EXPERT_CLASSES = [
-    'Acne and Rosacea Photos', 
-    'Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions', 
-    'Eczema (Atopic Dermatitis)', 
-    'Exanthems and Drug Eruptions', 
-    'Light Diseases and Disorders of Pigmentation', 
-    'Seborrheic Keratoses and other Benign Tumors', 
-    'Tinea Ringworm Candidiasis and other Fungal Infections', 
-    'Warts Molluscum and other Viral Infections'
-]
+from config import EXPERT_CLASSES, IMAGE_SIZE
 
 def generate_recommendation(top_prediction: dict) -> str:
     """
@@ -62,7 +51,7 @@ def main():
     model.eval()
 
     # 2. Get Validation Transforms (includes Smart Pad and Resize from v2)
-    val_transforms = get_val_transforms(target_size=224)
+    val_transforms = get_val_transforms(target_size=IMAGE_SIZE)
 
     # 3. Predict Top-3 Results
     results = predict_image(
