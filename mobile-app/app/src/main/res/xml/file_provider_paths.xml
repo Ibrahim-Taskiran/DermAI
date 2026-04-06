@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Kamera ile çekilen geçici fotoğraflar burada saklanır -->
+    <cache-path
+        name="camera_photos"
+        path="." />
+</paths>

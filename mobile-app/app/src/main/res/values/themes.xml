@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Uygulama içi tema (splash sonrası) -->
+    <style name="Theme.DermAI" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_brand_teal</item>
+        <item name="android:navigationBarColor">@color/splash_brand_teal</item>
+    </style>
+
+    <!-- Activity açılışı: Android 12+ sistem splash — launcher ikonu (artı) yerine markalı ikon -->
+    <style name="Theme.DermAI.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_brand_teal</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.DermAI</item>
+    </style>
+</resources>
