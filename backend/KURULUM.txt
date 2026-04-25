@@ -1,0 +1,130 @@
+================================================================
+         DermAI Backend — Yerel Kurulum Rehberi
+================================================================
+
+ÖN KOŞULLAR
+-----------
+  - Python 3.10 veya üzeri kurulu olmalı  →  https://python.org
+  - Git kurulu olmalı
+  - ai-model/checkpoints/ klasöründe eğitilmiş .pth dosyası bulunmalı
+
+
+ADIM 1 — Repoyu Klonla
+-----------------------
+  git clone https://github.com/REPO_ADRESI/DermAI.git
+  cd DermAI
+
+
+ADIM 2 — Backend Klasörüne Gir
+--------------------------------
+  cd backend
+
+
+ADIM 3 — Sanal Ortam Oluştur (Önerilen)
+-----------------------------------------
+  python -m venv venv
+  venv\Scripts\activate
+
+  Aktif olduğunda terminalde (venv) yazar.
+
+
+ADIM 4 — Bağımlılıkları Kur
+-----------------------------
+  pip install -r requirements.txt
+
+  NOT: torch büyük dosya (~800MB), indirme biraz sürebilir.
+       Zaman aşımı olursa şu şekilde ayrı kur:
+         pip install torch torchvision --timeout 300
+         pip install fastapi uvicorn[standard] python-multipart python-dotenv Pillow torchinfo
+
+
+ADIM 5 — .env Dosyasını Güncelle
+----------------------------------
+  backend/.env dosyasını bir metin editörüyle aç ve kontrol et:
+
+    MODEL_CHECKPOINT_PATH=../ai-model/checkpoints/dermai_checkpoint_epoch_20.pth
+    DEVICE=cpu
+
+  NOT: .pth dosyasının adı farklıysa ona göre değiştir.
+       Dosya adını görmek için: dir ..\ai-model\checkpoints\
+
+
+ADIM 6 — Kendi IP Adresini Öğren
+----------------------------------
+  ipconfig
+
+  Çıktıda Wi-Fi → IPv4 Address satırındaki adresi not al.
+  Örnek: 192.168.1.105
+
+  NOT: Telefon ve bilgisayar AYNI Wi-Fi ağında olmalı.
+
+
+ADIM 7 — Sunucuyu Başlat
+--------------------------
+  uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  Şunu görürsen başarılı:
+    INFO | Model başarıyla yüklendi. Cihaz: cpu | Sınıf sayısı: 6
+    INFO | Model hazır. Sunucu istekleri kabul ediyor.
+    INFO | Application startup complete.
+
+
+ADIM 8 — Firewall İzni Ver (Zorunlu)
+--------------------------------------
+  PowerShell'i YÖNETİCİ OLARAK aç (sağ tıkla → Yönetici olarak çalıştır)
+  Şu komutu çalıştır:
+
+    netsh advfirewall firewall add rule name="DermAI Backend Port 8000" dir=in action=allow protocol=TCP localport=8000
+
+  "Ok." yazarsa başarılı.
+
+
+ADIM 9 — Android Uygulamasını Güncelle
+----------------------------------------
+  Şu dosyayı aç:
+    mobile-app/app/src/main/java/com/ibrahim/dermai/di/NetworkModule.kt
+
+  Şu satırı bul ve kendi IP adresini yaz:
+    private const val BASE_URL = "http://192.168.1.XXX:8000/"
+
+  Sonra Android Studio'da:
+    Build → Clean Project → Build → Rebuild Project → Run
+
+
+TEST
+----
+  Telefon tarayıcısında şu adresi aç:
+    http://192.168.1.XXX:8000/
+
+  Şunu görürsen her şey çalışıyor:
+    {"app": "DermAI API", "model_loaded": true, ...}
+
+  Swagger UI (API dokümantasyonu):
+    http://localhost:8000/docs
+
+
+================================================================
+                    SIK KARŞILAŞILAN HATALAR
+================================================================
+
+  HATA: Could not import module "main"
+  ÇÖZÜM: backend/ klasöründe değilsin → cd backend yap
+
+  HATA: No module named 'torchinfo'
+  ÇÖZÜM: pip install torchinfo
+
+  HATA: Model checkpoint bulunamadı
+  ÇÖZÜM: .env dosyasındaki .pth dosya adını kontrol et
+         Dosyayı görmek için: dir ..\ai-model\checkpoints\
+
+  HATA: Connection refused (telefonda)
+  ÇÖZÜM: Firewall kuralını ekle (Adım 8)
+
+  HATA: failed to connect (telefonda)
+  ÇÖZÜM: IP adresi yanlış, ipconfig ile tekrar kontrol et
+         NetworkModule.kt içindeki IP'yi güncelle
+
+  HATA: torch indirme zaman aşımı
+  ÇÖZÜM: pip install torch torchvision --timeout 300
+
+================================================================
