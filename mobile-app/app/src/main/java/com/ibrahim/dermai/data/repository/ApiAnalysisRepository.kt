@@ -8,14 +8,16 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 /**
  * FastAPI backend'i ile gerçek API çağrılarını yapan Repository implementasyonu.
  *
- * Android 13+ ile gelen Photo Picker, gerçek dosya yolu değil
- * "content://" URI'ı döndürür. File() ile bu URI'lar açılamaz.
- * Bu yüzden ContentResolver kullanarak URI'dan byte okuyoruz.
+ * imagePath üç farklı formatta gelebilir:
+ *   1. "content://..." → Galeri / Photo Picker URI (Android 13+)
+ *   2. "file:///..."   → Dosya URI'ı
+ *   3. "/data/..."     → ImageOptimizer'dan gelen gerçek disk yolu
  */
 class ApiAnalysisRepository @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -23,11 +25,16 @@ class ApiAnalysisRepository @Inject constructor(
 ) : AnalysisRepository {
 
     override suspend fun analyzeImage(imagePath: String): AnalysisResponse {
-        // imagePath bir "content://" URI'ı veya gerçek dosya yolu olabilir
-        val uri = Uri.parse(imagePath)
+        // Gelen yolu doğru URI tipine çevir
+        val uri: Uri = when {
+            imagePath.startsWith("content://") || imagePath.startsWith("file://") ->
+                Uri.parse(imagePath)
+            else ->
+                // Düz dosya yolu → file:// URI'a çevir ki ContentResolver tanısın
+                Uri.fromFile(File(imagePath))
+        }
 
-        // ContentResolver aracılığıyla URI'dan byte dizisini oku
-        // Bu yöntem hem content:// URI'larını hem de file:// yollarını destekler
+        // ContentResolver ile URI'dan byte dizisi oku (tüm URI tipleri desteklenir)
         val imageBytes = context.contentResolver
             .openInputStream(uri)
             ?.use { it.readBytes() }
