@@ -25,8 +25,12 @@ class AnalysisViewModel @Inject constructor(
                 // TODO(BACKEND): imagePath burada repository'e gerçek API isteği için gönderiliyor.
                 val result = repository.analyzeImage(imagePath)
                 _uiState.value = AnalysisUiState(result = result)
+            } catch (e: java.io.IOException) {
+                _uiState.value = AnalysisUiState(error = "İnternet bağlantısı yok veya sunucuya ulaşılamadı. Lütfen bağlantınızı kontrol edip tekrar deneyin.")
+            } catch (e: retrofit2.HttpException) {
+                _uiState.value = AnalysisUiState(error = "Sunucu yanıt vermedi. Lütfen daha sonra tekrar deneyin.")
             } catch (e: Exception) {
-                _uiState.value = AnalysisUiState(error = e.localizedMessage ?: "Bilinmeyen bir hata oluştu")
+                _uiState.value = AnalysisUiState(error = "Fotoğraf işlenirken beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.")
             }
         }
     }

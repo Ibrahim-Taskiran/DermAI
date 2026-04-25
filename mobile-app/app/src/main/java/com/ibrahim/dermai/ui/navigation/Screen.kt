@@ -12,9 +12,6 @@ sealed class Screen(val route: String) {
     /** Kamera veya galeriden fotoğraf seçme ekranı */
     data object ImageSelection : Screen("image_selection")
 
-    /** CameraX ile kılavuzlu fotoğraf çekme ekranı */
-    data object Camera : Screen("camera")
-
     /** Hasta bilgi formu (yaş, cinsiyet, cilt tipi) - Mod: onboarding veya settings */
     data object MetadataForm : Screen("metadata_form/{mode}") {
         fun createRoute(mode: String): String {

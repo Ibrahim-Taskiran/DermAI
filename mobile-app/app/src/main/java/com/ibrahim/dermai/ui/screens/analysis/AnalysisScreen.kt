@@ -67,6 +67,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
 import com.ibrahim.dermai.data.model.AnalysisResponse
+import com.ibrahim.dermai.ui.components.ErrorCard
 import com.ibrahim.dermai.ui.theme.DermPrimary
 import kotlinx.coroutines.delay
 
@@ -193,7 +194,7 @@ fun AnalysisScreen(
                 }
                 // ── Hata Durumu ──
                 uiState.error != null -> {
-                    ErrorContent(
+                    ErrorCard(
                         errorMessage = uiState.error!!,
                         onRetry = { viewModel.analyzeImage(imagePath) }
                     )
@@ -282,11 +283,8 @@ private fun StartAnalysisContent(onStartAnalysis: () -> Unit) {
  */
 @Composable
 private fun LoadingAnalysisContent() {
-    // Analiz adımları
     val steps = listOf(
-        "Görsel yükleniyor...",
-        "Yapay zeka analiz ediyor...",
-        "Sonuçlar hazırlanıyor..."
+        "Analiz ediliyor..."
     )
     var currentStep by remember { mutableIntStateOf(0) }
 
@@ -432,56 +430,5 @@ private fun LoadingAnalysisContent() {
                 )
             }
         }
-    }
-}
-
-/**
- * Hata durumu gösterimi
- */
-@Composable
-private fun ErrorContent(
-    errorMessage: String,
-    onRetry: () -> Unit
-) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        ),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                text = "⚠️ Hata Oluştu",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = errorMessage,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-            )
-        }
-    }
-
-    Spacer(modifier = Modifier.height(20.dp))
-
-    Button(
-        onClick = onRetry,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.error
-        )
-    ) {
-        Text(
-            "Tekrar Dene",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }

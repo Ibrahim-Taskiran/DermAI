@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,18 +15,17 @@ import androidx.navigation.navArgument
 import com.ibrahim.dermai.data.model.AnalysisResponse
 import com.ibrahim.dermai.ui.screens.analysis.AnalysisScreen
 import com.ibrahim.dermai.ui.screens.bodymap.BodyMapScreen
-import com.ibrahim.dermai.ui.screens.camera.CameraScreen
 import com.ibrahim.dermai.ui.screens.image_selection.ImageSelectionScreen
 import com.ibrahim.dermai.ui.screens.metadata.MetadataFormScreen
 import com.ibrahim.dermai.ui.screens.result.ResultScreen
-import com.ibrahim.dermai.ui.screens.splash.SplashScreen
 import com.ibrahim.dermai.ui.screens.tracker.TrackerScreen
 import java.net.URLDecoder
 
 /**
  * Uygulamanın tüm navigasyon grafiğini yöneten NavHost.
  *
- * Akış: Splash → ImageSelection → Camera/Galeri → MetadataForm → BodyMap → Analysis → Result
+ * Akış: ImageSelection → Camera/Galeri → MetadataForm → BodyMap → Analysis → Result
+ *   └─ İlk açılışta profil yoksa → MetadataForm (onboarding) → ImageSelection
  *   └─ Result'tan "Günlüğe Kaydet" ile Tracker'a kayıt yapılabilir
  *   └─ ImageSelection'dan "Geçmiş Analizler" ile Tracker'a gidilebilir
  */
@@ -34,29 +34,16 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val animDuration = 400
 
+    // Profil kontrolü: ilk kez giriş yapan kullanıcıyı onboarding'e yönlendir
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("dermai_user_profile", android.content.Context.MODE_PRIVATE)
+    val hasProfile = prefs.getString("patient_metadata", null) != null
+    val startRoute = if (hasProfile) Screen.ImageSelection.route else Screen.MetadataForm.createRoute("onboarding")
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = startRoute
     ) {
-
-        // ── Açılış ekranı ──
-        composable(
-            route = Screen.Splash.route,
-            exitTransition = { fadeOut(tween(animDuration)) }
-        ) {
-            SplashScreen(
-                onNavigateToImageSelection = {
-                    navController.navigate(Screen.ImageSelection.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                },
-                onNavigateToOnboarding = {
-                    navController.navigate(Screen.MetadataForm.createRoute("onboarding")) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
-            )
-        }
 
         // ── Görsel Seçim ekranı ──
         composable(
@@ -76,9 +63,6 @@ fun AppNavigation() {
             }
         ) {
             ImageSelectionScreen(
-                onOpenCamera = {
-                    navController.navigate(Screen.Camera.route)
-                },
                 onImageSelectedFromGallery = { imagePath ->
                     navController.navigate(Screen.BodyMap.createRoute(imagePath))
                 },
@@ -91,39 +75,6 @@ fun AppNavigation() {
             )
         }
 
-        // ── CameraX Kılavuzlu Kamera ekranı ──
-        composable(
-            route = Screen.Camera.route,
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Up,
-                    tween(animDuration, easing = FastOutSlowInEasing)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Down,
-                    tween(animDuration, easing = FastOutSlowInEasing)
-                )
-            },
-            popExitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Down,
-                    tween(animDuration, easing = FastOutSlowInEasing)
-                )
-            }
-        ) {
-            CameraScreen(
-                onPhotoCaptured = { imagePath ->
-                    navController.navigate(Screen.BodyMap.createRoute(imagePath)) {
-                        popUpTo(Screen.Camera.route) { inclusive = true }
-                    }
-                },
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
 
         // ── Metadata Form ekranı ──
         composable(
@@ -213,7 +164,7 @@ fun AppNavigation() {
             // Metadata artık repository'den çekiliyor, Screen arası taşımaya gerek yok (isteğe bağlı)
             // Ama BodyMap'e geçiriyorduk. Artık gerekmez çünkü BodyMap veya Analysis ViewModel'i direkt UserProfileRepository'den o anki veriyi alabilir.
             BodyMapScreen(
-                gender = com.ibrahim.dermai.data.model.Gender.ERKEK, // Eğer gerekiyorsa ViewModel'den çekeceğiz. Ama artık cinsiyetsiz 3D model var.
+                // Cinsiyetsiz 3D model kullanılıyor, gender parametresi kaldırıldı
                 onContinue = { bodyRegion ->
                     navController.currentBackStackEntry?.savedStateHandle?.set("bodyRegion", bodyRegion)
                     navController.navigate(Screen.Analysis.createRoute(imagePath))

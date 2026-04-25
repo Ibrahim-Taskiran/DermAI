@@ -94,3 +94,14 @@ val DermSuccess = Color(0xFF16A34A)     // Green 600
 val DermSuccessContainer = Color(0xFFDCFCE7) // Green 100
 val DermWarning = Color(0xFFF59E0B)     // Amber 500
 val DermWarningContainer = Color(0xFFFEF3C7) // Amber 100
+
+// ── Ekran-Spesifik Renkler ──────────────────────────────────────
+// BodyMap ekranı arka planı (koyu teal)
+val BodyMapBackground = Color(0xFF004D40)      // Teal 900
+
+// Result ekranı – fade-out gradient renkleri
+val FadeWhite = Color(0xFFFFFFFF)               // Beyaz (gradient başlangıcı)
+val FadeTransparent = Color(0x00FFFFFF)          // Şeffaf beyaz (gradient bitişi)
+
+// Result ekranı – sıralama dairesi outline rengi
+val RankTealOutline = Color(0xFF0D9488)          // Teal 600 (= DermPrimary ile aynı)

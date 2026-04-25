@@ -14,7 +14,7 @@ class MockAnalysisRepository : AnalysisRepository {
         // Simulate network delay
         delay(2000)
         
-        return AnalysisResponse(
+         return AnalysisResponse(
             success = true,
             topPrediction = Prediction(
                 disease = "Egzama",
@@ -26,9 +26,12 @@ class MockAnalysisRepository : AnalysisRepository {
                 Prediction("Mantar", 0.05)
             ),
             advice = Advice(
-                care = "• Cildi tahriş eden sabun, deterjan ve parfümlü ürünlerden kaçının\n• Günde en az 2 kez nemlendirici krem uygulayın\n• Duş süresini 10 dakikanın altında tutun ve ılık su kullanın\n• Pamuklu ve nefes alan kıyafetler tercih edin\n• Kaşıntı durumunda cildi kaşımaktan kaçının",
-                recommendation = "• Dermatoloji uzmanı onaylı nemlendirici kremler kullanın\n• Stres yönetimi için düzenli egzersiz yapın\n• Alerjen olabilecek gıdaları tespit etmek için beslenme günlüğü tutun\n• Uykudan önce etkilenen bölgeye nemlendirici uygulayın",
-                doctorWarning = "Bu analiz yapay zeka tarafından yapılmıştır ve kesin bir tıbbi teşhis niteliği taşımamaktadır. En kısa sürede bir dermatoloji uzmanına başvurmanız önerilir."
+                displayName = "Egzama (Atopik Dermatit)",
+                care = "Cildinizi düzenli olarak nemlendirin ve tahriş edici maddelerden kaçının.",
+                recommendation = "Ilık suyla banyo yapın ve sert sabunlardan uzak durun.",
+                doctorWarning = "Egzama şiddetliyse veya enfekte olmuşsa bir dermatoloğa danışmalısınız.",
+                riskLevel = "orta",
+                reference = ""
             )
         )
     }

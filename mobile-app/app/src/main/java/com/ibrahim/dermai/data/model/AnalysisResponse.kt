@@ -25,9 +25,17 @@ data class Prediction(
 
 @Parcelize
 data class Advice(
+    @SerializedName("display_name")
+    val displayName: String = "",
+
     val care: String,
     val recommendation: String,
 
     @SerializedName("doctor_warning")
-    val doctorWarning: String
+    val doctorWarning: String,
+
+    @SerializedName("risk_level")
+    val riskLevel: String = "",
+
+    val reference: String = ""
 ) : Parcelable

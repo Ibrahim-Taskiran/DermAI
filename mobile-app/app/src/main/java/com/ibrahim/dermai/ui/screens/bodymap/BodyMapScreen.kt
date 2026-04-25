@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.ibrahim.dermai.data.model.Gender
+import com.ibrahim.dermai.ui.theme.BodyMapBackground
 import com.ibrahim.dermai.ui.theme.DermPrimary
 
 
@@ -64,7 +64,6 @@ import io.github.sceneview.math.Rotation
 @Composable
 fun BodyMapScreen(
     modifier: Modifier = Modifier,
-    gender: Gender? = null,
     viewModel: BodyMapViewModel = hiltViewModel(),
     onContinue: (String) -> Unit,
     onNavigateBack: () -> Unit
@@ -74,10 +73,11 @@ fun BodyMapScreen(
 
     // İstediğiniz özel koordinat (X:0, Z:5.0)
     var currentRotation by remember { androidx.compose.runtime.mutableStateOf(0f) }
-    val currentPosition = remember { Position(x = 0.0f, y = 0.0f, z = 5.0f) }
 
     Box(
-        modifier = modifier.fillMaxSize()
+        modifier = modifier
+            .fillMaxSize()
+            .background(BodyMapBackground)
     ) {
         // ── 3D Model (AndroidView kullanarak Lifecycle NPE bug'ını çözer) ──
         val modelPath = "models/body.glb"
@@ -242,6 +242,21 @@ androidx.compose.ui.viewinterop.AndroidView(
             )
         }
 
+        // ── Bilgilendirme metni ──
+        Text(
+            text = "Model üzerinden lezyon bölgesini seçin",
+            fontSize = 13.sp,
+            color = Color.White.copy(alpha = 0.75f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 100.dp)
+                .background(
+                    Color.Black.copy(alpha = 0.35f),
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
         // ── İpucu (model yoksa veya bölge seçilmediyse) ──
         val modelExists = remember {
             try { context.assets.open(modelPath).use { true } } catch (e: Exception) { false }
@@ -304,12 +319,23 @@ androidx.compose.ui.viewinterop.AndroidView(
                         )
                         .padding(horizontal = 20.dp, vertical = 12.dp)
                 ) {
-                    Text(
-                        text = "Modeli döndürün ve lezyon bölgesine dokunun",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.85f),
-                        textAlign = TextAlign.Center
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.TouchApp,
+                            contentDescription = "Döndür",
+                            tint = Color.White.copy(alpha = 0.85f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Modeli döndürün ve lezyon bölgesine dokunun",
+                            fontSize = 14.sp,
+                            color = Color.White.copy(alpha = 0.85f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }

@@ -4,11 +4,13 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,9 +65,18 @@ import com.ibrahim.dermai.data.model.Prediction
 import com.ibrahim.dermai.ui.theme.DermPrimary
 import com.ibrahim.dermai.ui.theme.DermPrimaryLight
 import com.ibrahim.dermai.ui.theme.DermSuccess
+import com.ibrahim.dermai.ui.theme.FadeTransparent
+import com.ibrahim.dermai.ui.theme.FadeWhite
 import com.ibrahim.dermai.ui.theme.GradientEnd
 import com.ibrahim.dermai.ui.theme.GradientStart
+import com.ibrahim.dermai.ui.theme.RankTealOutline
 import kotlin.math.roundToInt
+import android.net.Uri
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import coil.size.Size
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,6 +151,32 @@ fun ResultScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
+            // ── Seçilen Görsel ──
+            val context = LocalContext.current
+            val previewRequest = remember(imagePath) {
+                ImageRequest.Builder(context)
+                    .data(Uri.parse(imagePath))
+                    .size(Size(1080, 1080))
+                    .crossfade(true)
+                    .build()
+            }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = previewRequest),
+                    contentDescription = "Analiz edilen görsel",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // ── Ana Sonuç Kartı ──
             MainResultCard(result)
 
@@ -176,6 +213,25 @@ fun ResultScreen(
 
             // ── Doktor Uyarısı Kartı ──
             DoctorWarningCard(result.advice.doctorWarning)
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // ── Etik Uyarı Kartı ──
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
+            ) {
+                Text(
+                    text = "Bu uygulama yalnızca ön değerlendirme amaçlıdır. Kesin teşhis için dermatoloji uzmanına başvurun.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -235,7 +291,7 @@ fun ResultScreen(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    "Yeni Görsel Analiz Et",
+                    "Yeni Fotoğraf Seç",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -388,16 +444,31 @@ private fun PredictionsSection(result: AnalysisResponse) {
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            result.top3Predictions.forEachIndexed { index, prediction ->
-                key(prediction.disease, index) {
-                    AnimatedPredictionRow(
-                        prediction = prediction,
-                        index = index,
-                        isLast = index == result.top3Predictions.lastIndex
-                    )
+        Box {
+            Column(modifier = Modifier.padding(20.dp)) {
+                result.top3Predictions.forEachIndexed { index, prediction ->
+                    key(prediction.disease, index) {
+                        AnimatedPredictionRow(
+                            prediction = prediction,
+                            index = index,
+                            isLast = index == result.top3Predictions.lastIndex
+                        )
+                    }
                 }
             }
+
+            // Fade-out gradient overlay – beyazdan şeffafa
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(FadeTransparent, FadeWhite)
+                        )
+                    )
+            )
         }
     }
 }
@@ -432,12 +503,23 @@ private fun AnimatedPredictionRow(
             Box(
                 modifier = Modifier
                     .size(28.dp)
-                    .background(
-                        color = if (isTop)
-                            MaterialTheme.colorScheme.primary
+                    .then(
+                        if (isTop)
+                            Modifier.background(
+                                color = RankTealOutline,
+                                shape = CircleShape
+                            )
                         else
-                            MaterialTheme.colorScheme.surfaceVariant,
-                        shape = CircleShape
+                            Modifier
+                                .background(
+                                    color = Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .border(
+                                    width = 1.5.dp,
+                                    color = RankTealOutline,
+                                    shape = CircleShape
+                                )
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -446,9 +528,9 @@ private fun AnimatedPredictionRow(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (isTop)
-                        MaterialTheme.colorScheme.onPrimary
+                        Color.White
                     else
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        RankTealOutline
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
