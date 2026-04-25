@@ -23,12 +23,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    /**
-     * TODO(BACKEND): Kerem'in API adresini buraya yaz.
-     * Örnek: "http://192.168.1.100:8000/" (local geliştirme için)
-     * Örnek: "https://api.dermai.com/" (production için)
-     */
-    private const val BASE_URL = "http://localhost:8000/"
+    // Bilgisayarın WiFi IP adresi - telefon ve bilgisayar aynı ağda olmalı
+    // IP değişirse burası güncellenmeli (ipconfig ile kontrol et)
+    private const val BASE_URL = "http://192.168.1.112:8000/"
 
     @Provides
     @Singleton
