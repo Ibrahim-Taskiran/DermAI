@@ -41,6 +41,7 @@ try:
     from model import build_dermai_model          # EfficientNet-B0 oluşturucu
     from transforms import get_val_transforms     # Görüntü ön işleme pipeline'ı
     from inference import predict_image           # Top-K tahmin fonksiyonu
+    # config.py içinde hem EXPERTS_CLASSES hem de EXPERT_CLASSES (alias) tanımlı
     from config import EXPERTS_CLASSES            # 6 hastalık sınıfı listesi
 
     _AI_MODEL_IMPORTS_OK = True

@@ -9,23 +9,27 @@ def save_checkpoint(
     model: nn.Module, 
     optimizer: torch.optim.Optimizer, 
     epoch: int, 
-    filepath: str
+    filepath: str,
+    class_names: Optional[List[str]] = None
 ) -> None:
     """
     Saves a dictionary containing the model's state_dict, the optimizer's state_dict, 
-    and the current epoch for disaster recovery and resuming training.
+    the current epoch, and optionally the class names for disaster recovery and resuming training.
 
     Args:
         model (nn.Module): The PyTorch model to save.
         optimizer (torch.optim.Optimizer): The optimizer state to save.
         epoch (int): The current epoch number.
         filepath (str): Path to save the checkpoint (.pth file).
+        class_names (Optional[List[str]]): The ordered list of class names used during training.
     """
     checkpoint = {
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict()
     }
+    if class_names is not None:
+        checkpoint['class_names'] = class_names
     torch.save(checkpoint, filepath)
     print(f"Checkpoint saved securely at {filepath}")
 
@@ -225,9 +229,9 @@ def train_model(
         elif scheduler is not None and not isinstance(scheduler, torch.optim.lr_scheduler.OneCycleLR):
             scheduler.step()
         
-        # Disaster Recovery: Save checkpoint every epoch
+        # Disaster Recovery: Save checkpoint every epoch (with class_names to prevent index mismatch)
         checkpoint_path = f"{checkpoint_dir}/dermai_checkpoint_epoch_{epoch}.pth"
-        save_checkpoint(model, optimizer, epoch, checkpoint_path)
+        save_checkpoint(model, optimizer, epoch, checkpoint_path, class_names=class_names)
         
     print("\nTraining Complete!")
     return history

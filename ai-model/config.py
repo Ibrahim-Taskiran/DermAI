@@ -3,11 +3,11 @@
 # Single Source of Truth for DermAI pipeline configuration
 
 EXPERTS_CLASSES = [
-    'Eczema (Atopic Dermatitis)', 
-    'Normal', 
-    'Acne and Rosacea Photos', 
-    'Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions', 
-    'Light Diseases and Disorders of Pigmentation', 
+    'Acne and Rosacea Photos',
+    'Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions',
+    'Eczema (Atopic Dermatitis)',
+    'Light Diseases and Disorders of Pigmentation',
+    'Normal',
     'Warts Molluscum and other Viral Infections'
 ]
 

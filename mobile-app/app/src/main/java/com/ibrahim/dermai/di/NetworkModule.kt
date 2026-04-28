@@ -25,7 +25,7 @@ object NetworkModule {
 
     // Bilgisayarın WiFi IP adresi - telefon ve bilgisayar aynı ağda olmalı
     // IP değişirse burası güncellenmeli (ipconfig ile kontrol et)
-    private const val BASE_URL = "http://192.168.1.112:8000/"
+    private const val BASE_URL = "http://192.168.238.188:8000/"
 
     @Provides
     @Singleton
