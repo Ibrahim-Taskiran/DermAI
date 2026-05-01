@@ -20,7 +20,7 @@ except ImportError:
     HAS_TABULATE = False
 
 DATASET_ROOT = "./Dataset"
-CHECKPOINT_PATH = "checkpoints/dermai_checkpoint_epoch_20.pth"
+CHECKPOINT_PATH = "export/dermai.pth"
 
 def evaluate_model(model, val_loader, device):
     """
@@ -67,6 +67,9 @@ def print_terminal_report(y_true, y_pred, classes):
         for m in metrics:
             print(f"{m[0]:<20} |   {m[1]}")
             
+    print("\n" + "="*20 + " DETAILED METRICS " + "="*20)
+    print(classification_report(y_true, y_pred, target_names=classes))
+            
     # Find the most confused pair
     cm = confusion_matrix(y_true, y_pred, labels=range(len(classes)))
     np.fill_diagonal(cm, 0) # Zero out the correct predictions
@@ -88,9 +91,12 @@ def print_terminal_report(y_true, y_pred, classes):
 
 def create_dashboard(y_true, y_pred, classes, history=None):
     """
-    Generates a high-quality visualization dashboard containing the Confusion Matrix
-    and F1-Scores Bar Chart.
+    Generates a high-quality visualization dashboard containing the Confusion Matrix,
+    F1-Scores Bar Chart, and detailed text report.
     """
+    # Detailed text block
+    clf_report_text = classification_report(y_true, y_pred, target_names=classes)
+    
     # F1 scores per class
     f1_per_class = f1_score(y_true, y_pred, average=None, labels=range(len(classes)))
     
@@ -98,7 +104,7 @@ def create_dashboard(y_true, y_pred, classes, history=None):
     cm = confusion_matrix(y_true, y_pred, labels=range(len(classes)))
     
     # Layout size adapts to whether loss history is plotted or not
-    fig_cols = 3 if history else 2
+    fig_cols = 4 if history else 3
     fig = plt.figure(figsize=(10 * fig_cols, 10))
     
     # 1. Confusion Matrix Subplot
@@ -122,18 +128,27 @@ def create_dashboard(y_true, y_pred, classes, history=None):
     # Add actual value strings text to the end of bars
     for i, v in enumerate(f1_per_class):
         ax2.text(v + 0.01, i, f"{v:.2f}", va='center', fontsize=11)
+        
+    # 3. Detailed Classification Text Report
+    ax_text = fig.add_subplot(1, fig_cols, 3)
+    ax_text.axis('off')
+    ax_text.text(0.01, 0.95, "Comprehensive Run Metrics\n\n" + clf_report_text, 
+                 fontsize=11, fontfamily='monospace', 
+                 verticalalignment='top', horizontalalignment='left',
+                 bbox=dict(facecolor='white', alpha=0.8, edgecolor='none'))
+    ax_text.set_title('Detailed Report', fontsize=16, pad=15)
     
-    # 3. Training & Validation Loss Curve (if history was saved)
+    # 4. Training & Validation Loss Curve (if history was saved)
     if history and "train_loss" in history and "val_loss" in history:
-        ax3 = fig.add_subplot(1, fig_cols, 3)
+        ax4 = fig.add_subplot(1, fig_cols, 4)
         epochs = range(1, len(history["train_loss"]) + 1)
-        ax3.plot(epochs, history["train_loss"], label="Train Loss", marker='o', linewidth=2)
-        ax3.plot(epochs, history["val_loss"], label="Val Loss", marker='s', linewidth=2)
-        ax3.set_title('Training Convergence Analytics', fontsize=16, pad=15)
-        ax3.set_xlabel('Epochs', fontsize=12)
-        ax3.set_ylabel('CrossEntropy Loss', fontsize=12)
-        ax3.legend(fontsize=12)
-        ax3.grid(True, linestyle='--', alpha=0.7)
+        ax4.plot(epochs, history["train_loss"], label="Train Loss", marker='o', linewidth=2)
+        ax4.plot(epochs, history["val_loss"], label="Val Loss", marker='s', linewidth=2)
+        ax4.set_title('Training Convergence Analytics', fontsize=16, pad=15)
+        ax4.set_xlabel('Epochs', fontsize=12)
+        ax4.set_ylabel('CrossEntropy Loss', fontsize=12)
+        ax4.legend(fontsize=12)
+        ax4.grid(True, linestyle='--', alpha=0.7)
     
     plt.tight_layout()
     os.makedirs('reports', exist_ok=True)

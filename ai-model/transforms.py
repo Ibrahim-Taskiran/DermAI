@@ -32,7 +32,7 @@ def get_train_transforms(target_size: int = 224) -> v2.Compose:
         v2.Resize(target_size, antialias=True),
         v2.CenterCrop(target_size),
         v2.RandomRotation(degrees=45),
-        v2.ColorJitter(brightness=0.3, contrast=0.3), # hue removed since it wasn't requested
+        v2.ColorJitter(brightness=0.3, contrast=0.3),
         v2.RandomHorizontalFlip(p=0.5),
         v2.RandomVerticalFlip(p=0.5),
         v2.ToImage(),
