@@ -7,10 +7,11 @@
         <item name="android:navigationBarColor">@color/splash_brand_teal</item>
     </style>
 
-    <!-- Activity açılışı: Android 12+ sistem splash — launcher ikonu (artı) yerine markalı ikon -->
+    <!-- Activity açılışı: Android 12+ sistem splash -->
     <style name="Theme.DermAI.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/splash_brand_teal</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_splash</item>
+        <item name="windowSplashScreenBackground">#1A9E80</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.DermAI</item>
+        <item name="windowSplashScreenAnimationDuration">1000</item>
     </style>
 </resources>

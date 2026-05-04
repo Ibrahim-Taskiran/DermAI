@@ -13,8 +13,6 @@ val DermOnPrimary = Color(0xFFFFFFFF)
 
 // Secondary – Vurgulama rengi (cyan)
 val DermSecondary = Color(0xFF06B6D4)        // Cyan 500
-val DermSecondaryLight = Color(0xFF22D3EE)   // Cyan 400
-val DermSecondaryDark = Color(0xFF0891B2)    // Cyan 600
 val DermOnSecondary = Color(0xFFFFFFFF)
 
 // Tertiary – Üçüncül renk (indigo aksan)
@@ -82,18 +80,14 @@ val DermOutlineVariantDark = Color(0xFF334155)     // Slate 700
 
 // ── Gradient Renkleri ──────────────────────────────────────────
 val GradientStart = Color(0xFF0D9488)   // Teal 600
-val GradientMiddle = Color(0xFF06B6D4)  // Cyan 500
 val GradientEnd = Color(0xFF6366F1)     // Indigo 500
-
-val GradientSplashStart = Color(0xFF042F2E)  // Teal 950
-val GradientSplashMiddle = Color(0xFF0F766E) // Teal 700
-val GradientSplashEnd = Color(0xFF0D9488)    // Teal 600
 
 // Başarı rengi
 val DermSuccess = Color(0xFF16A34A)     // Green 600
-val DermSuccessContainer = Color(0xFFDCFCE7) // Green 100
-val DermWarning = Color(0xFFF59E0B)     // Amber 500
-val DermWarningContainer = Color(0xFFFEF3C7) // Amber 100
+
+// ── Splash Ekranı Renkleri ────────────────────────────────────
+val SplashGradientCenter = Color(0xFF22B89C)  // Açık teal (merkez)
+val SplashGradientEdge = Color(0xFF1A9E80)    // Marka teal (kenar)
 
 // ── Ekran-Spesifik Renkler ──────────────────────────────────────
 // BodyMap ekranı arka planı (koyu teal)
@@ -102,6 +96,3 @@ val BodyMapBackground = Color(0xFF004D40)      // Teal 900
 // Result ekranı – fade-out gradient renkleri
 val FadeWhite = Color(0xFFFFFFFF)               // Beyaz (gradient başlangıcı)
 val FadeTransparent = Color(0x00FFFFFF)          // Şeffaf beyaz (gradient bitişi)
-
-// Result ekranı – sıralama dairesi outline rengi
-val RankTealOutline = Color(0xFF0D9488)          // Teal 600 (= DermPrimary ile aynı)
