@@ -86,11 +86,12 @@ class DermAIDataset(Dataset):
                     if os.path.isfile(img_path):
                         class_paths[cls_name].append((img_path, class_idx))
                         
-        # Cap images at 500 per class using a fixed random seed
+        MAX_IMAGES_PER_CLASS = 2000
+        # Cap images at MAX_IMAGES_PER_CLASS per class using a fixed random seed
         for cls_name, paths in class_paths.items():
-            if len(paths) > 500:
+            if len(paths) > MAX_IMAGES_PER_CLASS:
                 random.seed(42)
-                paths = random.sample(paths, 500)
+                paths = random.sample(paths, MAX_IMAGES_PER_CLASS)
             self.samples.extend(paths)
 
     def __len__(self) -> int:

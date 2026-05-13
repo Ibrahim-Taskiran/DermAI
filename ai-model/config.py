@@ -1,23 +1,21 @@
 # config.py
 
-# Single Source of Truth for DermAI pipeline configuration
-
-EXPERTS_CLASSES = [
-    'Eczema (Atopic Dermatitis)', 
-    'Normal', 
-    'Acne and Rosacea Photos', 
-    'Actinic Keratosis Basal Cell Carcinoma and other Malignant Lesions', 
-    'Light Diseases and Disorders of Pigmentation', 
-    'Warts Molluscum and other Viral Infections'
+EXPERT_CLASSES = [
+    'Acne and Rosacea',
+    'Eczema',
+    'Malignant Lesions',
+    'Normal',
+    'Other',
+    'Pigmentation Disorders',
+    'Viral Infections'
 ]
 
-# We maintain the variable name EXPERT_CLASSES for backwards compatibility
-EXPERT_CLASSES = EXPERTS_CLASSES
+# 2. Dynamic Capping Settings
+MAX_IMAGES_PER_CLASS = 500
 
-CLASS_MAPPING = {
-    'Eczema Photos': 'Eczema (Atopic Dermatitis)',
-    'Atopic Dermatitis Photos': 'Eczema (Atopic Dermatitis)'
-}
-
+# 3. Model Hyperparameters
 IMAGE_SIZE = 224
 BATCH_SIZE = 32
+
+# 4. Class Mapping (Generated dynamically for the Predictor & App)
+CLASS_MAPPING = {i: cls_name for i, cls_name in enumerate(EXPERT_CLASSES)}
