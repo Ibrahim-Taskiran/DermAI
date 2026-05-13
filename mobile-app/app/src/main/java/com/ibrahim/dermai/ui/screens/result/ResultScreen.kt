@@ -69,7 +69,7 @@ import com.ibrahim.dermai.ui.theme.FadeTransparent
 import com.ibrahim.dermai.ui.theme.FadeWhite
 import com.ibrahim.dermai.ui.theme.GradientEnd
 import com.ibrahim.dermai.ui.theme.GradientStart
-import com.ibrahim.dermai.ui.theme.RankTealOutline
+import com.ibrahim.dermai.ui.theme.DermPrimary
 import kotlin.math.roundToInt
 import android.net.Uri
 import coil.compose.rememberAsyncImagePainter
@@ -506,7 +506,7 @@ private fun AnimatedPredictionRow(
                     .then(
                         if (isTop)
                             Modifier.background(
-                                color = RankTealOutline,
+                                color = DermPrimary,
                                 shape = CircleShape
                             )
                         else
@@ -517,7 +517,7 @@ private fun AnimatedPredictionRow(
                                 )
                                 .border(
                                     width = 1.5.dp,
-                                    color = RankTealOutline,
+                                    color = DermPrimary,
                                     shape = CircleShape
                                 )
                     ),
@@ -530,7 +530,7 @@ private fun AnimatedPredictionRow(
                     color = if (isTop)
                         Color.White
                     else
-                        RankTealOutline
+                        DermPrimary
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))

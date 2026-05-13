@@ -18,13 +18,14 @@ import com.ibrahim.dermai.ui.screens.bodymap.BodyMapScreen
 import com.ibrahim.dermai.ui.screens.image_selection.ImageSelectionScreen
 import com.ibrahim.dermai.ui.screens.metadata.MetadataFormScreen
 import com.ibrahim.dermai.ui.screens.result.ResultScreen
+import com.ibrahim.dermai.ui.screens.splash.SplashScreen
 import com.ibrahim.dermai.ui.screens.tracker.TrackerScreen
 import java.net.URLDecoder
 
 /**
  * Uygulamanın tüm navigasyon grafiğini yöneten NavHost.
  *
- * Akış: ImageSelection → Camera/Galeri → MetadataForm → BodyMap → Analysis → Result
+ * Akış: Splash → ImageSelection → Camera/Galeri → MetadataForm → BodyMap → Analysis → Result
  *   └─ İlk açılışta profil yoksa → MetadataForm (onboarding) → ImageSelection
  *   └─ Result'tan "Günlüğe Kaydet" ile Tracker'a kayıt yapılabilir
  *   └─ ImageSelection'dan "Geçmiş Analizler" ile Tracker'a gidilebilir
@@ -38,12 +39,30 @@ fun AppNavigation() {
     val context = LocalContext.current
     val prefs = context.getSharedPreferences("dermai_user_profile", android.content.Context.MODE_PRIVATE)
     val hasProfile = prefs.getString("patient_metadata", null) != null
-    val startRoute = if (hasProfile) Screen.ImageSelection.route else Screen.MetadataForm.createRoute("onboarding")
 
     NavHost(
         navController = navController,
-        startDestination = startRoute
+        startDestination = Screen.Splash.route
     ) {
+
+        // ── Splash Ekranı ──
+        composable(
+            route = Screen.Splash.route,
+            exitTransition = { fadeOut(tween(400)) }
+        ) {
+            SplashScreen(
+                onSplashFinished = {
+                    val nextRoute = if (hasProfile)
+                        Screen.ImageSelection.route
+                    else
+                        Screen.MetadataForm.createRoute("onboarding")
+
+                    navController.navigate(nextRoute) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
 
         // ── Görsel Seçim ekranı ──
         composable(

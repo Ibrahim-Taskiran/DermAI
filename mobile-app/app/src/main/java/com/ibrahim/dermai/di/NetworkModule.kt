@@ -14,10 +14,6 @@ import javax.inject.Singleton
 
 /**
  * Retrofit ve OkHttp network bağımlılıklarını sağlayan Hilt modülü.
- *
- * TODO(BACKEND): Kerem'in FastAPI sunucusu hazır olduğunda:
- *   1. BASE_URL'yi gerçek sunucu adresiyle değiştir
- *   2. AppModule'deki provideAnalysisRepository'i güncelle (ApiAnalysisRepository kullan)
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,7 +27,10 @@ object NetworkModule {
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (com.ibrahim.dermai.BuildConfig.DEBUG)
+                HttpLoggingInterceptor.Level.BODY
+            else
+                HttpLoggingInterceptor.Level.NONE
         }
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
