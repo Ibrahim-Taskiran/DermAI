@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.ibrahim.dermai.data.model.AnalysisRecord
+import com.ibrahim.dermai.util.DiseaseDisplayNames
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -134,7 +135,7 @@ fun TrackerScreen(
                         FilterChip(
                             selected = selectedFilter == disease,
                             onClick = { viewModel.setFilter(disease) },
-                            label = { Text(disease) },
+                            label = { Text(DiseaseDisplayNames.displayName(disease)) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -290,7 +291,7 @@ private fun RecordTimelineCard(
 
                 // Hastalık adı
                 Text(
-                    text = record.topDisease,
+                    text = DiseaseDisplayNames.displayName(record.topDisease),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface

@@ -22,18 +22,13 @@ sealed class Screen(val route: String) {
     /** 2D vücut haritası - lezyon bölgesi seçimi */
     data object BodyMap : Screen("body_map/{imagePath}") {
         fun createRoute(imagePath: String): String {
-            val encoded = java.net.URLEncoder.encode(imagePath, "UTF-8")
+            val encoded = com.ibrahim.dermai.util.NavPathEncoder.encode(imagePath)
             return "body_map/$encoded"
         }
     }
 
-    /** Analiz ekranı - seçilen görseli analiz eder */
-    data object Analysis : Screen("analysis/{imagePath}") {
-        fun createRoute(imagePath: String): String {
-            val encoded = java.net.URLEncoder.encode(imagePath, "UTF-8")
-            return "analysis/$encoded"
-        }
-    }
+    /** Analiz ekranı - görsel yolu önceki ekranın savedStateHandle'ında taşınır */
+    data object Analysis : Screen("analysis")
 
     /** Sonuç ekranı - analiz tamamlanınca buraya yönlendirilir */
     data object Result : Screen("result")

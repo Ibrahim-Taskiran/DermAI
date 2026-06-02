@@ -2,13 +2,14 @@ package com.ibrahim.dermai.data.repository
 
 import android.content.Context
 import android.net.Uri
+import java.io.File
 import com.ibrahim.dermai.data.model.AnalysisResponse
 import com.ibrahim.dermai.data.remote.DermAIApiService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
+import com.ibrahim.dermai.util.ImageUriUtil
 import javax.inject.Inject
 
 /**
@@ -25,29 +26,22 @@ class ApiAnalysisRepository @Inject constructor(
 ) : AnalysisRepository {
 
     override suspend fun analyzeImage(imagePath: String): AnalysisResponse {
-        // Gelen yolu doğru URI tipine çevir
-        val uri: Uri = when {
-            imagePath.startsWith("content://") || imagePath.startsWith("file://") ->
-                Uri.parse(imagePath)
-            else ->
-                // Düz dosya yolu → file:// URI'a çevir ki ContentResolver tanısın
-                Uri.fromFile(File(imagePath))
+        val imageBytes = ImageUriUtil.readBytes(context, imagePath)
+
+        val mimeType = when {
+            imagePath.startsWith("content://") || imagePath.startsWith("file://") -> {
+                context.contentResolver.getType(Uri.parse(imagePath)) ?: "image/jpeg"
+            }
+            else -> "image/jpeg" // ImageOptimizer çıktısı her zaman JPEG
         }
 
-        // ContentResolver ile URI'dan byte dizisi oku (tüm URI tipleri desteklenir)
-        val imageBytes = context.contentResolver
-            .openInputStream(uri)
-            ?.use { it.readBytes() }
-            ?: throw IllegalStateException("Görüntü dosyası açılamadı: $imagePath")
-
-        // MIME tipini URI'dan otomatik al, bulunamazsa varsayılan JPEG kullan
-        val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
-
-        // Byte dizisinden multipart gövdesi oluştur
         val requestBody = imageBytes.toRequestBody(mimeType.toMediaTypeOrNull())
 
-        // Dosya adını URI'dan çıkar, bulunamazsa sabit isim kullan
-        val fileName = uri.lastPathSegment ?: "image.jpg"
+        val fileName = when {
+            imagePath.startsWith("content://") || imagePath.startsWith("file://") ->
+                Uri.parse(imagePath).lastPathSegment ?: "image.jpg"
+            else -> File(imagePath).name.ifBlank { "image.jpg" }
+        }
 
         val multipartBody = MultipartBody.Part.createFormData(
             name = "file",        // backend/routers/predict.py'deki field adıyla eşleşmeli

@@ -18,6 +18,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // gradle.properties içinde DERMAI_API_BASE_URL ile özelleştirilebilir
+        val apiBaseUrl = (project.findProperty("DERMAI_API_BASE_URL") as String?)
+            ?: "http://192.168.218.188:8000/"
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
@@ -87,7 +92,7 @@ dependencies {
     // Compose Navigation - Ekranlar Arası Geçiş
     implementation(libs.navigation.compose)
 
-    // Retrofit + OkHttp (TODO: Backend hazır olunca aktif edilecek)
+    // Retrofit + OkHttp
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
@@ -105,4 +110,4 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
-
+

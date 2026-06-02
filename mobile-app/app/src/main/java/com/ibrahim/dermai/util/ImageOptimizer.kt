@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.net.Uri
 import android.media.ExifInterface
-import java.io.ByteArrayOutputStream
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -27,12 +27,19 @@ object ImageOptimizer {
             var inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
             if (inputStream == null) return@withContext null
 
-            // 1. Get original orientation from EXIF
-            val exif = ExifInterface(inputStream)
-            val orientation = exif.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
+            // 1. EXIF (stream mark/reset desteklemeli)
+            val orientation = try {
+                BufferedInputStream(inputStream).use { buffered ->
+                    buffered.mark(256 * 1024)
+                    val exif = ExifInterface(buffered)
+                    exif.getAttributeInt(
+                        ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL
+                    )
+                }
+            } catch (_: Exception) {
                 ExifInterface.ORIENTATION_NORMAL
-            )
+            }
             inputStream.close()
 
             // 2. Decode bounds to calculate inSampleSize

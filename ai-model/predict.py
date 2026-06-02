@@ -5,7 +5,7 @@ import os
 from model import build_dermai_model
 from transforms import get_val_transforms
 from inference import predict_image
-from config import EXPERT_CLASSES, IMAGE_SIZE
+from config import CLASS_LABEL_ORDER, class_names_for_num_classes, IMAGE_SIZE
 
 def generate_recommendation(top_prediction: dict) -> str:
     """
@@ -40,13 +40,13 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device.upper()}")
 
-    # 1. Initialize EfficientNet-B0 Model configured for 8 classes
-    num_classes = len(EXPERT_CLASSES)
-    model = build_dermai_model(num_classes=num_classes, pretrained=False)
-    
-    # Load the checkpoint weights correctly handling disaster-recovery dict mapping
     checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=True)
-    model.load_state_dict(checkpoint['model_state_dict'])
+    state_dict = checkpoint["model_state_dict"]
+    num_classes = state_dict["classifier.1.weight"].shape[0]
+    class_names = list(checkpoint.get("class_names") or class_names_for_num_classes(num_classes))
+
+    model = build_dermai_model(num_classes=num_classes, pretrained=False)
+    model.load_state_dict(state_dict)
     model = model.to(device)
     model.eval()
 
@@ -58,7 +58,7 @@ def main():
         image_path=args.image,
         model=model,
         val_transforms=val_transforms,
-        class_names=EXPERT_CLASSES,
+        class_names=class_names,
         device=device
     )
 

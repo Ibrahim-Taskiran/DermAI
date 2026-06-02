@@ -5,7 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -70,21 +72,23 @@ fun BodyMapScreen(
 ) {
     val selectedRegion by viewModel.selectedRegion.collectAsState()
     val context = LocalContext.current
-
-    // İstediğiniz özel koordinat (X:0, Z:5.0)
-    var currentRotation by remember { androidx.compose.runtime.mutableStateOf(0f) }
+    val modelPath = "models/body.glb"
+    val modelExists = remember(modelPath) {
+        try {
+            context.assets.open(modelPath).use { true }
+        } catch (_: Exception) {
+            false
+        }
+    }
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(BodyMapBackground)
     ) {
-        // ── 3D Model (AndroidView kullanarak Lifecycle NPE bug'ını çözer) ──
-        val modelPath = "models/body.glb"
 
-        // SADECE AndroidView BLOĞUNU BU İLE DEĞİŞTİR
-
-androidx.compose.ui.viewinterop.AndroidView(
+        if (modelExists) {
+        androidx.compose.ui.viewinterop.AndroidView(
     modifier = Modifier.fillMaxSize(),
     factory = { ctx ->
         val vm = viewModel
@@ -209,6 +213,16 @@ androidx.compose.ui.viewinterop.AndroidView(
         } catch (_: Exception) {}
     }
 )
+        } else {
+            SimpleRegionPicker(
+                regions = viewModel.bodyRegions,
+                selectedRegion = selectedRegion,
+                onRegionSelected = { viewModel.selectRegion(it) },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 120.dp, bottom = 160.dp, start = 24.dp, end = 24.dp)
+            )
+        }
 
         // ── Üst bar: Geri butonu + Başlık ──
         Row(
@@ -244,7 +258,8 @@ androidx.compose.ui.viewinterop.AndroidView(
 
         // ── Bilgilendirme metni ──
         Text(
-            text = "Model üzerinden lezyon bölgesini seçin",
+            text = if (modelExists) "Model üzerinden lezyon bölgesini seçin"
+            else "Lezyon bölgesini listeden seçin",
             fontSize = 13.sp,
             color = Color.White.copy(alpha = 0.75f),
             textAlign = TextAlign.Center,
@@ -257,51 +272,7 @@ androidx.compose.ui.viewinterop.AndroidView(
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         )
-        // ── İpucu (model yoksa veya bölge seçilmediyse) ──
-        val modelExists = remember {
-            try { context.assets.open(modelPath).use { true } } catch (e: Exception) { false }
-        }
-        if (!modelExists) {
-            // Model bulunamadığında bilgi göster
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 40.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(
-                            Color.White.copy(alpha = 0.15f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.TouchApp,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.7f),
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "3D model yüklenmedi",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "assets/models/body.glb dosyasını projeye ekleyin",
-                    fontSize = 13.sp,
-                    color = Color.White.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        } else if (selectedRegion == null) {
+        if (modelExists && selectedRegion == null) {
             // Model var ama bölge seçilmedi - Sayfanın üstüne taşındı
             Column(
                 modifier = Modifier
@@ -409,6 +380,52 @@ androidx.compose.ui.viewinterop.AndroidView(
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun SimpleRegionPicker(
+    regions: List<String>,
+    selectedRegion: String?,
+    onRegionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Lezyon bölgesi",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            regions.forEach { region ->
+                val selected = region == selectedRegion
+                androidx.compose.material3.FilterChip(
+                    selected = selected,
+                    onClick = { onRegionSelected(region) },
+                    label = {
+                        Text(
+                            region,
+                            color = if (selected) Color.White else Color.DarkGray
+                        )
+                    },
+                    colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = DermPrimary,
+                        selectedLabelColor = Color.White
+                    )
                 )
             }
         }

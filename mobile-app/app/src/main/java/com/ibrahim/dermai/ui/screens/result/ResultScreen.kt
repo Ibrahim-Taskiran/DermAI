@@ -70,8 +70,9 @@ import com.ibrahim.dermai.ui.theme.FadeWhite
 import com.ibrahim.dermai.ui.theme.GradientEnd
 import com.ibrahim.dermai.ui.theme.GradientStart
 import com.ibrahim.dermai.ui.theme.DermPrimary
+import com.ibrahim.dermai.util.DiseaseDisplayNames
 import kotlin.math.roundToInt
-import android.net.Uri
+import com.ibrahim.dermai.util.ImageUriUtil
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.size.Size
@@ -155,7 +156,7 @@ fun ResultScreen(
             val context = LocalContext.current
             val previewRequest = remember(imagePath) {
                 ImageRequest.Builder(context)
-                    .data(Uri.parse(imagePath))
+                    .data(ImageUriUtil.toCoilData(imagePath))
                     .size(Size(1080, 1080))
                     .crossfade(true)
                     .build()
@@ -410,7 +411,10 @@ private fun MainResultCard(result: AnalysisResponse) {
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = result.topPrediction.disease,
+                    text = DiseaseDisplayNames.displayName(
+                        apiDisease = result.topPrediction.disease,
+                        adviceDisplayName = result.advice.displayName
+                    ),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -541,7 +545,7 @@ private fun AnimatedPredictionRow(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = prediction.disease,
+                        text = DiseaseDisplayNames.displayName(prediction.disease),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (isTop) FontWeight.Bold else FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface

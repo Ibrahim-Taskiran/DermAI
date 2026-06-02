@@ -1,6 +1,6 @@
 package com.ibrahim.dermai.ui.screens.analysis
 
-import android.net.Uri
+import com.ibrahim.dermai.util.ImageUriUtil
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -88,10 +88,11 @@ fun AnalysisScreen(
         viewModel.analyzeImage(imagePath)
     }
 
-    // Sonuç geldiğinde otomatik Result ekranına geç (tek sefer / sonuç değişince)
+    // Sonuç geldiğinde otomatik Result ekranına geç (yalnızca bir kez)
     LaunchedEffect(uiState.result) {
         val r = uiState.result ?: return@LaunchedEffect
         onNavigateToResult(r)
+        viewModel.consumeResult()
     }
 
     Scaffold(
@@ -141,7 +142,7 @@ fun AnalysisScreen(
                 Box(modifier = Modifier.fillMaxSize()) {
                     val previewRequest = remember(imagePath) {
                         ImageRequest.Builder(context)
-                            .data(Uri.parse(imagePath))
+                            .data(ImageUriUtil.toCoilData(imagePath))
                             .size(Size(1080, 1080))
                             .crossfade(false)
                             .build()

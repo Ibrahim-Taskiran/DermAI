@@ -26,7 +26,7 @@ def generate_recommendation(top_prediction: dict) -> str:
 def main():
     parser = argparse.ArgumentParser(description="DermAI Inference Script")
     parser.add_argument("-i", "--image", required=True, help="Path to the input image file to predict")
-    parser.add_argument("-c", "--checkpoint", default="checkpoints/dermai_checkpoint_epoch_15.pth", help="Path to the saved model checkpoint")
+    parser.add_argument("-c", "--checkpoint", default="dermai.pth", help="Path to the saved model checkpoint")
     args = parser.parse_args()
 
     if not os.path.isfile(args.image):

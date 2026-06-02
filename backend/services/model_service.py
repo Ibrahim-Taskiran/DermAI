@@ -4,11 +4,11 @@
 # EfficientNet-B0 modelini belleğe yükler ve
 # gelen görüntüler üzerinde inference çalıştırır.
 #
-# ai-model/ klasöründeki:
+# ai-model/export paketindeki:
 #   - model.py      -> build_dermai_model()
 #   - transforms.py -> get_val_transforms()
 #   - inference.py  -> predict_image()
-#   - config.py     -> EXPERTS_CLASSES
+#   - config.py     -> EXPERT_CLASSES
 # dosyaları buradan import edilir.
 # =============================================
 
@@ -41,19 +41,26 @@ try:
     from model import build_dermai_model          # EfficientNet-B0 oluşturucu
     from transforms import get_val_transforms     # Görüntü ön işleme pipeline'ı
     from inference import predict_image           # Top-K tahmin fonksiyonu
-    # config.py içinde hem EXPERTS_CLASSES hem de EXPERT_CLASSES (alias) tanımlı
-    from config import EXPERTS_CLASSES            # 6 hastalık sınıfı listesi
+    from config import EXPERT_CLASSES, IMAGE_SIZE
 
     _AI_MODEL_IMPORTS_OK = True
 except ImportError as e:
     logger.error(
-        "ai-model modülleri yüklenemedi: %s\n"
-        "ai-model/ klasörünün mevcut olduğundan ve "
+        "ai-model export modülleri yüklenemedi: %s\n"
+        "ai-model/export klasörünün mevcut olduğundan ve "
         "model.py, transforms.py, inference.py, config.py dosyalarının "
         "içinde bulunduğundan emin olun.",
         e
     )
     _AI_MODEL_IMPORTS_OK = False
+
+
+def _infer_num_classes(state_dict: dict) -> int:
+    """Checkpoint'teki classifier katmanından çıktı sınıf sayısını okur."""
+    for key, tensor in state_dict.items():
+        if key.endswith("classifier.1.weight"):
+            return int(tensor.shape[0])
+    raise ValueError("state_dict içinde classifier.1.weight bulunamadı.")
 
 
 class ModelService:
@@ -109,44 +116,57 @@ class ModelService:
         try:
             logger.info("Model yükleniyor: %s", checkpoint_path)
 
-            # EfficientNet-B0 mimarisini oluştur (ağırlıklar sonra yüklenecek)
-            self._model = build_dermai_model(
-                num_classes=settings.MODEL_NUM_CLASSES,
-                pretrained=False   # Checkpoint'ten yükleyeceğimiz için ImageNet ağırlıkları gerekmez
-            )
-
-            # Checkpoint dosyasını belleğe al
             checkpoint = torch.load(
                 checkpoint_path,
                 map_location=self._device,
-                weights_only=True  # Güvenli yükleme modu
+                weights_only=True,
             )
 
-            # Checkpoint farklı formatlarda kaydedilmiş olabilir
             if isinstance(checkpoint, dict):
-                # engine.py'de {"model_state_dict": ..., "class_names": ...} formatında kaydediliyor
-                state_dict = checkpoint.get("model_state_dict", checkpoint.get("state_dict", checkpoint))
-                saved_classes = checkpoint.get("class_names", None)
+                state_dict = checkpoint.get(
+                    "model_state_dict",
+                    checkpoint.get("state_dict", checkpoint),
+                )
+                saved_classes = checkpoint.get("class_names")
             else:
-                # Doğrudan state_dict kaydedilmiş
                 state_dict = checkpoint
                 saved_classes = None
 
-            # Ağırlıkları modele yükle
+            num_classes = _infer_num_classes(state_dict)
+            expected_classes = len(EXPERT_CLASSES)
+            if num_classes != expected_classes:
+                raise ValueError(
+                    f"Checkpoint {num_classes} sınıflı; DermAI export paketi {expected_classes} sınıf bekliyor. "
+                    f"Doğru checkpoint dosyasını kullanın."
+                )
+            logger.info("Checkpoint sınıf sayısı: %d", num_classes)
+
+            self._model = build_dermai_model(
+                num_classes=expected_classes,
+                pretrained=False,
+            )
             self._model.load_state_dict(state_dict)
             self._model.to(self._device)
-            self._model.eval()   # Inference modu (dropout/batchnorm davranışını etkiler)
+            self._model.eval()
 
-            # Sınıf isimlerini belirle: önce checkpoint'ten, yoksa config'den
             if saved_classes:
-                self._class_names = saved_classes
+                self._class_names = list(saved_classes)
+                if self._class_names != list(EXPERT_CLASSES):
+                    raise ValueError(
+                        "Checkpoint class_names eğitim sırasıyla uyuşmuyor. "
+                        f"Beklenen: {list(EXPERT_CLASSES)}, "
+                        f"checkpoint: {self._class_names}"
+                    )
                 logger.info("Sınıf isimleri checkpoint'ten alındı: %s", self._class_names)
             else:
-                self._class_names = EXPERTS_CLASSES
-                logger.info("Sınıf isimleri config.py'den alındı: %s", self._class_names)
+                self._class_names = list(EXPERT_CLASSES)
+                logger.info(
+                    "Sınıf isimleri export config içinden alındı: %s",
+                    self._class_names,
+                )
 
             # Validation transform pipeline'ını hazırla
-            self._transforms = get_val_transforms(target_size=224)
+            self._transforms = get_val_transforms(target_size=IMAGE_SIZE)
 
             self._is_loaded = True
             logger.info(

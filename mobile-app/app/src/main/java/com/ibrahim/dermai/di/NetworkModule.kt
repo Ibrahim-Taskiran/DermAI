@@ -19,9 +19,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // Bilgisayarın WiFi IP adresi - telefon ve bilgisayar aynı ağda olmalı
-    // IP değişirse burası güncellenmeli (ipconfig ile kontrol et)
-    private const val BASE_URL = "http://192.168.238.188:8000/"
+    // IP: gradle.properties → DERMAI_API_BASE_URL (emülatör: http://10.0.2.2:8000/)
 
     @Provides
     @Singleton
@@ -44,7 +42,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(com.ibrahim.dermai.BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

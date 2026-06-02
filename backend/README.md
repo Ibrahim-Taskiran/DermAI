@@ -91,8 +91,8 @@ Tüm ayarlar tek bir yerden yönetilir. `.env` dosyasını okur ve `settings` ne
 |---|---|---|
 | `HOST` | `0.0.0.0` | Sunucunun dinleyeceği IP (0.0.0.0 = tüm ağ arayüzleri) |
 | `PORT` | `8000` | Sunucu portu |
-| `MODEL_CHECKPOINT_PATH` | `../ai-model/checkpoints/...` | Eğitilmiş model dosyasının yolu |
-| `MODEL_NUM_CLASSES` | `6` | Sınıf sayısı |
+| `MODEL_CHECKPOINT_PATH` | `../ai-model/export/dermai.pth` | Eğitilmiş model dosyasının yolu |
+| `MODEL_NUM_CLASSES` | `12` | Sınıf sayısı |
 | `DEVICE` | `cpu` | `cpu` veya `cuda` |
 
 ---
@@ -126,15 +126,15 @@ AnalysisResponse          ←→  data class AnalysisResponse
 
 Backend ile `ai-model/` klasörü arasındaki en kritik bağlantı burada kurulur.
 
-**ai-model klasörüyle bağlantı:**
+**ai-model/export paketinin bağlantısı:**
 
 ```python
-sys.path.insert(0, "../ai-model")   # ai-model klasörü Python yoluna eklenir
+sys.path.insert(0, "../ai-model/export")   # ai-model/export klasörü Python yoluna eklenir
 
 from model import build_dermai_model       # EfficientNet-B0 mimarisini kurar
 from transforms import get_val_transforms  # Görüntü ön işleme pipeline'ı
 from inference import predict_image        # Tahmin fonksiyonu
-from config import EXPERTS_CLASSES         # 6 hastalık sınıfı listesi
+from config import EXPERTS_CLASSES         # 12 hastalık sınıfı listesi
 ```
 
 **Model yükleme süreci:**

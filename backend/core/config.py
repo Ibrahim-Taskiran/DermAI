@@ -30,18 +30,18 @@ class Settings:
     # Backend klasörünün kök dizini
     BASE_DIR: Path = _BASE_DIR
 
-    # ai-model klasörünün yolu (import için sys.path'e eklenir)
-    AI_MODEL_DIR: Path = _BASE_DIR.parent / "ai-model"
+    # ai-model export paketinin yolu (import için sys.path'e eklenir)
+    AI_MODEL_DIR: Path = _BASE_DIR.parent / "ai-model" / "export"
 
     # Model checkpoint dosyasının tam yolu
     # .env'deki yol backend/ dizinine göre relatif olarak yorumlanır
     MODEL_CHECKPOINT_PATH: Path = (
-        _BASE_DIR / os.getenv("MODEL_CHECKPOINT_PATH", "../ai-model/checkpoints/best_model.pth")
+        _BASE_DIR / os.getenv("MODEL_CHECKPOINT_PATH", "../ai-model/export/dermai.pth")
     ).resolve()
 
     # --- Model Ayarları ---
-    # Sınıf sayısı (ai-model/config.py ile senkronize olmalı)
-    MODEL_NUM_CLASSES: int = int(os.getenv("MODEL_NUM_CLASSES", "6"))
+    # 12 sınıflı yeni export modelini desteklemek için varsayılan değer güncellendi.
+    MODEL_NUM_CLASSES: int = int(os.getenv("MODEL_NUM_CLASSES", "12"))
 
     # Tahmin cihazı: "cpu" veya "cuda"
     DEVICE: str = os.getenv("DEVICE", "cpu")

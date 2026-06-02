@@ -42,11 +42,11 @@ ADIM 5 — .env Dosyasını Güncelle
 ----------------------------------
   backend/.env dosyasını bir metin editörüyle aç ve kontrol et:
 
-    MODEL_CHECKPOINT_PATH=../ai-model/checkpoints/dermai_checkpoint_epoch_20.pth
+    MODEL_CHECKPOINT_PATH=../ai-model/export/dermai.pth
     DEVICE=cpu
 
   NOT: .pth dosyasının adı farklıysa ona göre değiştir.
-       Dosya adını görmek için: dir ..\ai-model\checkpoints\
+       Dosyayı görmek için: dir ..\ai-model\export\
 
 
 ADIM 6 — Kendi IP Adresini Öğren
@@ -64,7 +64,7 @@ ADIM 7 — Sunucuyu Başlat
   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
   Şunu görürsen başarılı:
-    INFO | Model başarıyla yüklendi. Cihaz: cpu | Sınıf sayısı: 6
+    INFO | Model başarıyla yüklendi. Cihaz: cpu | Sınıf sayısı: 12
     INFO | Model hazır. Sunucu istekleri kabul ediyor.
     INFO | Application startup complete.
 

@@ -20,7 +20,7 @@ import com.ibrahim.dermai.ui.screens.metadata.MetadataFormScreen
 import com.ibrahim.dermai.ui.screens.result.ResultScreen
 import com.ibrahim.dermai.ui.screens.splash.SplashScreen
 import com.ibrahim.dermai.ui.screens.tracker.TrackerScreen
-import java.net.URLDecoder
+import com.ibrahim.dermai.util.NavPathEncoder
 
 /**
  * Uygulamanın tüm navigasyon grafiğini yöneten NavHost.
@@ -178,15 +178,18 @@ fun AppNavigation() {
             }
         ) { backStackEntry ->
             val encodedPath = backStackEntry.arguments?.getString("imagePath") ?: ""
-            val imagePath = URLDecoder.decode(encodedPath, "UTF-8")
+            val imagePath = NavPathEncoder.decode(encodedPath)
 
             // Metadata artık repository'den çekiliyor, Screen arası taşımaya gerek yok (isteğe bağlı)
             // Ama BodyMap'e geçiriyorduk. Artık gerekmez çünkü BodyMap veya Analysis ViewModel'i direkt UserProfileRepository'den o anki veriyi alabilir.
             BodyMapScreen(
                 // Cinsiyetsiz 3D model kullanılıyor, gender parametresi kaldırıldı
                 onContinue = { bodyRegion ->
-                    navController.currentBackStackEntry?.savedStateHandle?.set("bodyRegion", bodyRegion)
-                    navController.navigate(Screen.Analysis.createRoute(imagePath))
+                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("bodyRegion", bodyRegion)
+                        set("analysisImagePath", imagePath)
+                    }
+                    navController.navigate(Screen.Analysis.route)
                 },
                 onNavigateBack = {
                     navController.popBackStack()
@@ -197,9 +200,6 @@ fun AppNavigation() {
         // ── Analiz ekranı ──
         composable(
             route = Screen.Analysis.route,
-            arguments = listOf(
-                navArgument("imagePath") { type = NavType.StringType }
-            ),
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentTransitionScope.SlideDirection.Left,
@@ -224,9 +224,11 @@ fun AppNavigation() {
                     tween(animDuration, easing = FastOutSlowInEasing)
                 )
             }
-        ) { backStackEntry ->
-            val encodedPath = backStackEntry.arguments?.getString("imagePath") ?: ""
-            val imagePath = URLDecoder.decode(encodedPath, "UTF-8")
+        ) {
+            val imagePath = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<String>("analysisImagePath")
+                ?: ""
 
             val bodyRegion = navController.previousBackStackEntry
                 ?.savedStateHandle
@@ -235,10 +237,14 @@ fun AppNavigation() {
             AnalysisScreen(
                 imagePath = imagePath,
                 onNavigateToResult = { result ->
-                    navController.currentBackStackEntry?.savedStateHandle?.set("result", result)
-                    navController.currentBackStackEntry?.savedStateHandle?.set("bodyRegion", bodyRegion)
-                    navController.currentBackStackEntry?.savedStateHandle?.set("imagePath", imagePath)
-                    navController.navigate(Screen.Result.route)
+                    navController.currentBackStackEntry?.savedStateHandle?.apply {
+                        set("result", result)
+                        set("bodyRegion", bodyRegion)
+                        set("imagePath", imagePath)
+                    }
+                    navController.navigate(Screen.Result.route) {
+                        launchSingleTop = true
+                    }
                 },
                 onNavigateBack = {
                     navController.popBackStack()

@@ -6,10 +6,11 @@ from tqdm import tqdm
 from sklearn.metrics import classification_report
 
 def save_checkpoint(
-    model: nn.Module, 
-    optimizer: torch.optim.Optimizer, 
-    epoch: int, 
-    filepath: str
+    model: nn.Module,
+    optimizer: torch.optim.Optimizer,
+    epoch: int,
+    filepath: str,
+    class_names: Optional[List[str]] = None,
 ) -> None:
     """
     Saves a dictionary containing the model's state_dict, the optimizer's state_dict, 
@@ -24,8 +25,10 @@ def save_checkpoint(
     checkpoint = {
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
+        'optimizer_state_dict': optimizer.state_dict(),
     }
+    if class_names is not None:
+        checkpoint['class_names'] = class_names
     torch.save(checkpoint, filepath)
     print(f"Checkpoint saved securely at {filepath}")
 
@@ -227,7 +230,7 @@ def train_model(
         
         # Disaster Recovery: Save checkpoint every epoch
         checkpoint_path = f"{checkpoint_dir}/dermai_checkpoint_epoch_{epoch}.pth"
-        save_checkpoint(model, optimizer, epoch, checkpoint_path)
+        save_checkpoint(model, optimizer, epoch, checkpoint_path, class_names=class_names)
         
     print("\nTraining Complete!")
     return history
