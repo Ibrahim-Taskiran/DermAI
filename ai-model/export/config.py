@@ -16,7 +16,7 @@ EXPERT_CLASSES = [
 ]
 
 # 2. Dynamic Capping Settings
-MAX_TRAIN_IMAGES_PER_CLASS = 2000
+MAX_TRAIN_IMAGES_PER_CLASS = 1500
 MAX_VAL_IMAGES_PER_CLASS = 500
 
 # 3. Model Hyperparameters

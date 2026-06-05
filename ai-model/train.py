@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split, Subset
 
 # Import custom DermAI modules
 from transforms import get_train_transforms, get_val_transforms
@@ -12,14 +12,14 @@ from engine import train_model
 from config import EXPERT_CLASSES, CLASS_MAPPING, IMAGE_SIZE, BATCH_SIZE
 
 # Hyperparameters
-EPOCHS = 20
+EPOCHS = 15
 LEARNING_RATE = 5e-4
-DATASET_ROOT = "./Dataset"
+DATASET_ROOT = "./Dataset2" 
 
 def main() -> None:
     """
     Main training script for the DermAI model.
-    Initializes datasets, model, optimizer, scheduler, and starts the training loop.
+    Initializes datasets properly from the master directory and applies an 80/20 in-memory split.
     """
     print("=== DermAI Model Training ===")
     
@@ -33,31 +33,31 @@ def main() -> None:
     val_transforms = get_val_transforms(target_size=target_size)
 
     # 2. Setup Datasets
-    train_dir = os.path.join(DATASET_ROOT, "train")
-    val_dir = os.path.join(DATASET_ROOT, "test")
+    print("Loading datasets with fixed Train/Val caps per class...")
     
-    print("Loading datasets...")
     train_dataset = DermAIDataset(
-        root_dir=train_dir, 
+        root_dir=DATASET_ROOT, 
         transform=train_transforms, 
         allowed_classes=EXPERT_CLASSES, 
-        class_mapping=CLASS_MAPPING
-    )
-    val_dataset = DermAIDataset(
-        root_dir=val_dir, 
-        transform=val_transforms, 
-        allowed_classes=EXPERT_CLASSES,
-        class_mapping=CLASS_MAPPING
+        class_mapping=CLASS_MAPPING,
+        split="train"
     )
     
-    print(f"Loaded {len(train_dataset)} training images and {len(val_dataset)} validation images.")
-    print(f"Identified {len(train_dataset.classes)} unique classes.")
+    val_dataset = DermAIDataset(
+        root_dir=DATASET_ROOT, 
+        transform=val_transforms, 
+        allowed_classes=EXPERT_CLASSES,
+        class_mapping=CLASS_MAPPING,
+        split="val"
+    )
+    
+    print(f"Loaded: {len(train_dataset)} training and {len(val_dataset)} validation images.")
 
-    # Extract class names to pass to the engine for classification report
+    # Extract class names from the dataset object
     class_names = train_dataset.classes
 
     # 3. Setup DataLoaders
-    # Pin memory for faster GPU transfer and set num_workers=4 for AMD Ryzen CPU
+    # Pin memory for faster GPU transfer and set num_workers=4
     train_loader = DataLoader(
         train_dataset,
         batch_size=BATCH_SIZE,
@@ -76,8 +76,8 @@ def main() -> None:
 
     # 4. Model Initialization
     print("\nInitializing EfficientNet-B0 Backbone...")
-    # Dynamically determine the number of classes
-    dynamic_num_classes = len(train_dataset.classes)
+    # Dynamically determine the number of classes from config using EXPERT_CLASSES directly as requested
+    dynamic_num_classes = len(EXPERT_CLASSES)
     model = build_dermai_model(num_classes=dynamic_num_classes, pretrained=True)
     model = model.to(device)
 
@@ -110,13 +110,9 @@ def main() -> None:
         class_names=class_names
     )
 
-    # Backend varsayılanı: checkpoints/best_model.pth (son epoch, 6 sınıf)
-    last_epoch_ckpt = f"./checkpoints/dermai_checkpoint_epoch_{EPOCHS}.pth"
-    best_path = "./checkpoints/best_model.pth"
-    if os.path.isfile(last_epoch_ckpt):
-        import shutil
-        shutil.copy2(last_epoch_ckpt, best_path)
-        print(f"best_model.pth güncellendi: {best_path}")
+    from visualize import plot_loss_curves
+    plot_loss_curves(history)
+    print("Training complete! Loss graph saved to reports/training_loss_curve.png")
 
 if __name__ == "__main__":
     main()

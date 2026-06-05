@@ -14,8 +14,8 @@ CLASS_MAPPING = {
     'Atopic Dermatitis Photos': 'Eczema (Atopic Dermatitis)'
 }
 
-TRAIN_DIR = "./Dataset/train"
-VAL_DIR = "./Dataset/test"
+TRAIN_DIR = "./Dataset2"
+VAL_DIR = "./Dataset2"
 VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 # Dynamically detect all classes from the train directory
@@ -73,17 +73,19 @@ def calculate_data_health(class_totals, overall_total):
 
 def generate_report():
     print("Scanning Dataset...")
-    train_counts = count_images_in_dir(TRAIN_DIR)
-    val_counts = count_images_in_dir(VAL_DIR)
+    # Dataset2 is unified, so we only count once to get the true physical total
+    true_counts = count_images_in_dir(TRAIN_DIR)
     
-    # Aggregate data
+    # Aggregate data simulating the 80/20 split used in PyTorch
     report_data = []
     overall_total = 0
     
     for cls in EXPERT_CLASSES:
-        t_count = train_counts[cls]
-        v_count = val_counts[cls]
-        total = t_count + v_count
+        total = true_counts[cls]
+        # Simulate the exact PyTorch split logic (80% Train, 20% Val)
+        t_count = int(total * 0.8)
+        v_count = total - t_count
+        
         overall_total += total
         report_data.append({
             "class": cls,
@@ -118,7 +120,7 @@ def generate_report():
 
     # 1. Print Terminal Report
     print("\n" + "="*80)
-    print("DermAI Database Audit Report".center(80))
+    print("Database Audit Report".center(80))
     print("="*80)
     
     headers = ["Disease Category", "Training Count", "Validation Count", "Total", "% of Total Dataset"]
@@ -156,7 +158,7 @@ def generate_report():
     norm = plt.Normalize(min(totals_sorted), max(totals_sorted))
     colors = plt.cm.RdYlGn(norm(totals_sorted))
     
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(8, 12))
     bars = ax.barh(short_names, totals_sorted, color=colors, edgecolor='black')
     
     # Invert y-axis to have the highest count at the top
@@ -169,7 +171,7 @@ def generate_report():
         ax.text(label_x_pos, bar.get_y() + bar.get_height()/2, f'{int(width)}', 
                 va='center', fontsize=11, fontweight='bold')
                 
-    ax.set_title('DermAI Dataset Distribution: Data-Rich vs Data-Lean Classes', fontsize=16, pad=15)
+    ax.set_title('DermAI Dataset Distribution', fontsize=16, pad=15)
     ax.set_xlabel('Total Number of Images', fontsize=12, labelpad=10)
     ax.set_ylabel('Disease Category', fontsize=12, labelpad=10)
     

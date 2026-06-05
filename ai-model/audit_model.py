@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split, Subset
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score, classification_report
 from tqdm import tqdm
 
@@ -19,8 +19,8 @@ try:
 except ImportError:
     HAS_TABULATE = False
 
-DATASET_ROOT = "./Dataset"
-CHECKPOINT_PATH = "export/dermai.pth"
+DATASET_ROOT = "./Dataset2"
+CHECKPOINT_PATH = "export\dermai15.pth"
 
 def evaluate_model(model, val_loader, device):
     """
@@ -161,22 +161,25 @@ def main():
     print(f"Audit Environment Target Device: {device.upper()}")
     
     if not os.path.exists(CHECKPOINT_PATH):
-        print(f"Error: Required Super-Expert checkpoint '{CHECKPOINT_PATH}' not found!")
+        print(f"Error: Required  checkpoint '{CHECKPOINT_PATH}' not found!")
         return
         
-    val_dir = os.path.join(DATASET_ROOT, "test")
-    if not os.path.exists(val_dir):
-        print(f"Error: Validation directory '{val_dir}' not found!")
+    if not os.path.exists(DATASET_ROOT):
+        print(f"Error: Validation directory '{DATASET_ROOT}' not found!")
         return
 
     # Setup Robust Validation DataLoader
     val_transforms = get_val_transforms(target_size=IMAGE_SIZE)
     val_dataset = DermAIDataset(
-        root_dir=val_dir, 
+        root_dir=DATASET_ROOT, 
         transform=val_transforms, 
         allowed_classes=EXPERT_CLASSES,
-        class_mapping=CLASS_MAPPING
+        class_mapping=CLASS_MAPPING,
+        split="val"
     )
+    
+    classes = val_dataset.classes
+    
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4, pin_memory=True)
     
     # Initialize Model Infrastructure (EfficientNet-B0)
@@ -194,9 +197,6 @@ def main():
     
     print("\nExecuting Comprehensive Deep-Scan Validation Array...")
     y_true, y_pred = evaluate_model(model, val_loader, device)
-    
-    # Map classes based on internal validation indexing identically to network
-    classes = val_dataset.classes
     
     # Generate Reporting Tools
     print_terminal_report(y_true, y_pred, classes)

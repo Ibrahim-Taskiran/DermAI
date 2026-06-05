@@ -8,11 +8,27 @@
 - **Bileşik Ölçeklendirme (Compound Scaling):** Bu mimarinin tercih edilme sebebi; ağın derinliğini, genişliğini ve giriş çözünürlüğünü matematiksel olarak dengeli bir şekilde ölçeklendirebilmesidir. Böylece VRAM (donanım kısıtlamaları) aşılmadan maksimum başarılı sonuç alınır.
 - **Özelleştirilmiş Sınıflandırıcı Başlık (Classifier Head):** Sadece hedeflediğimiz uzmanlık sınıflarını tahmin etmek üzere ağın sonuna projemize özel dinamik bir sınıflandırma katmanı entegre edilmiştir.
 
-## "Dengeli Uzman" (Balanced Expert) Stratejisi
-- **Veri Mühendisliği ve Sınırlandırma (Capping):** Veri setindeki aşırı sınıf dengesizliğini (class imbalance) önlemek amacıyla, modelin yanlılık (bias) geliştirmemesi için her sınıf maksimum **500 görsel** ile sınırlandırılmıştır. İstatistiksel olarak sağlığı zayıf olan (250 görselden az) sınıflar ise analizden tamamen çıkarılmıştır.
+## 12-Sınıflı Kapsamlı (Super-Expert) Stratejisi
+- **Dinamik Veri Bölme ve Sınırlandırma (Capping):** Veri setindeki dengesizliği (class imbalance) kontrol altında tutmak için, eğitim ve doğrulama setleri oransal (80/20) olarak oluşturulur. Ancak aşırı öğrenmeyi (overfitting) önlemek amacıyla her bir sınıf için eğitim görselleri maksimum **1500**, doğrulama görselleri ise maksimum **500** ile sınırlandırılmıştır. "Diğer" (Other) gibi belirsiz gürültü sınıfları sistemden tamamen çıkarılarak tam 12 uzmanlık sınıfına odaklanılmıştır.
 - **Optimizasyon ve Ağırlıklandırma:** Hızlı ve istikrarlı yakınsama (convergence) sağlamak için **OneCycleLR** öğrenme oranı zamanlayıcısı kullanılmıştır. Ayrıca sistem, geçmiş fazlardan kalma Sınıf Ağırlıkları (Class Weights) stratejisi gözetilerek evrimleştirilmiştir.
 
+## Veri Seti Kategorileri (Hedeflenen Hastalık Sınıfları)
+Sistem, gürültü sınıfları ("Other") veri havuzundan arındırıldıktan sonra tamamen klinik doğruluğu hedefleyen toplam **32,933** görselden oluşan **12 temel dermatolojik sınıf** üzerinde hizmet vermektedir. Güncel sistemde bulunan uzmanlık kategorileri aşağıdadır:
+1. Melanocytic Nevi
+2. Basal Cell Carcinoma
+3. Acne or Rosacea
+4. Melanoma
+5. Normal (Sağlıklı Cilt)
+6. Warts Molluscum and other Viral Infections
+7. Benign Keratosis-like Lesions
+8. Psoriasis pictures Lichen Planus and related diseases
+9. Seborrheic Keratoses and other Benign Tumors
+10. Tinea Ringworm Candidiasis and other Fungal Infections
+11. Eczema
+12. Atopic Dermatitis
+
 ## Veri Ön İşleme (Data Preprocessing)
+- **Kısayol Öğrenme Engellemesi (Watermark Blackout):** Ham verilerin alt kısmında bulunan (örn: "© Dermnet.com") ticari filigranlar, modelin cilt dokusu yerine yazıyı ezberlemesini (shortcut learning) önlemek amacıyla piksel tensörü üzerinden özel bir algoritmayla kalıcı olarak maskelenerek (siyah blok kullanılarak) silinmiştir.
 - **Akıllı Dolgu (Smart Padding / Letterboxing):** Dermatolojik verilerin tıbbi bütünlüğünü bozmamak esastır. Orijinal görüntü formunu (en-boy oranını) bozup cilt dokularını esnetmek yerine, görsellerin kenarlarına kare yapacak şekilde siyah bantlar ekleyen Letterboxing yöntemi kullanılmıştır.
 - **Veri Artırma (Data Augmentation):** Modelin başarısını ve genelleme yeteneğini artırmak için PyTorch `v2` Transforms kullanılarak Rastgele Döndürme (Rotation), Çevirme (Flip) ve Renk Titremesi (Color Jitter) gibi agresif artırma teknikleri uygulanmıştır.
 
@@ -31,7 +47,9 @@ Sistem modüler bir yaklaşımla, tek gerçeklik kaynağı prensibine uygun olar
 | `database_report.py` | Veri setinin sınıflar arası dağılımını, veri sağlığını ve oranlarını analiz edip grafikler üreten analiz modülü. |
 
 ## Performans Metrikleri
-Modelin final 6 sınıflı "Balanced Expert" fazında değerlendirilmesi sonucunda ulaşılan başarımlar şöyledir:
-- **Genel Doğruluk (Final Accuracy):** `%84.03`
-- **Makro F1-Skoru (Macro F1-Score):** `0.81`
-- **Sağlıklı Doku Başarısı:** 'Normal' sınıfı testlerinde modelin teşhis etme doğruluğu `%97 - %100` aralığında kusursuza yakın bir seviye sergilemektedir.
+Modelin 12 sınıflı final yapısında, doğrulanmış veri seti üzerinde yapılan değerlendirmesi (Audit) sonucunda ulaşılan başarılar şöyledir:
+- **Genel Doğruluk (Overall Accuracy):** `%95.44`
+- **Makro F1-Skoru (Macro F1-Score):** `0.9508`
+- **Ağırlıklı F1-Skoru (Weighted F1-Score):** `0.9546`
+- **Kusursuz Teşhis Başarısı:** 'Melanoma', 'Normal', 'Tinea Ringworm Candidiasis' ve 'Melanocytic Nevi' sınıflarında model F1-Skoru olarak `%96 - %99` aralığına ulaşmaktadır.
+- **Klinik Teşhis Zorluğu Analizi:** Beklendiği üzere, dermatoskop yardımı olmadan optik olarak ayrıştırılması dahi oldukça güç olan 'Basal Cell Carcinoma' ile 'Benign Keratosis-like Lesions' yapılarında sadece izafi bir karışıklık gözlemlenmiş; sistem klinik standartlarda rasyonel sınırlar içindeki görevini tescillemiştir.

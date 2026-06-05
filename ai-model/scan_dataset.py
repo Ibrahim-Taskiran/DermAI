@@ -6,12 +6,22 @@ def scan_medical_dataset(root_path):
     print(f"--- Scanning Dataset at: {root_path} ---")
     
     report = {}
-    for split in ['train', 'test']:
-        split_path = os.path.join(root_path, split)
+    
+    # Check if there are train/test splits, or direct class folders
+    splits = ['train', 'test']
+    has_splits = any(os.path.exists(os.path.join(root_path, split)) for split in splits)
+    
+    if has_splits:
+        scan_dirs = splits
+    else:
+        scan_dirs = ['']
+        
+    for split in scan_dirs:
+        split_path = os.path.join(root_path, split) if split else root_path
         if not os.path.exists(split_path):
             continue
             
-        print(f"\nAnalyzing {split.upper()} split...")
+        print(f"\nAnalyzing {split.upper() if split else 'ROOT'} split...")
         class_counts = {}
         for folder in os.listdir(split_path):
             folder_path = os.path.join(split_path, folder)
@@ -30,5 +40,5 @@ def scan_medical_dataset(root_path):
     return report
 
 if __name__ == "__main__":
-    dataset_path = "./Dataset" # Change this if your path is different
+    dataset_path = "./Dataset2" # Change this if your path is different
     results = scan_medical_dataset(dataset_path)

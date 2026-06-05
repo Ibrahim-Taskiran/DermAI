@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Callable
 
 from PIL import Image
 from torch.utils.data import Dataset
-from config import EXPERT_CLASSES, CLASS_MAPPING, IMAGE_SIZE
+from config import EXPERT_CLASSES, CLASS_MAPPING, IMAGE_SIZE, MAX_TRAIN_IMAGES_PER_CLASS, MAX_VAL_IMAGES_PER_CLASS
 
 class DermAIDataset(Dataset):
     """
@@ -20,6 +20,7 @@ class DermAIDataset(Dataset):
         allowed_classes: Optional[List[str]] = EXPERT_CLASSES,
         transform: Optional[Callable] = None,
         class_mapping: Optional[dict] = CLASS_MAPPING,
+        split: str = "all",
     ):
         """
         Initializes the DermAIDataset.
@@ -32,9 +33,11 @@ class DermAIDataset(Dataset):
                                             and returns a transformed version.
             class_mapping (Optional[dict]): A dictionary mapping folder names to unified class names.
                                             Defaults to CLASS_MAPPING from config.py.
+            split (str): 'train', 'val', or 'all'. Used to split datasets per class.
         """
         self.root_dir = root_dir
         self.transform = transform
+        self.split = split
         self.class_mapping = class_mapping or {}
         
         # Discover all subdirectories
@@ -86,11 +89,27 @@ class DermAIDataset(Dataset):
                     if os.path.isfile(img_path):
                         class_paths[cls_name].append((img_path, class_idx))
                         
-        # Cap images at 500 per class using a fixed random seed
+        # Cap images per class using proportional splitting and fixed caps
         for cls_name, paths in class_paths.items():
-            if len(paths) > 500:
-                random.seed(42)
-                paths = random.sample(paths, 500)
+            # Consistently shuffle the paths so we can safely split
+            random.seed(42)
+            paths = random.sample(paths, len(paths))
+            
+            # 1. Proportional split first (80% train, 20% val)
+            total = len(paths)
+            split_idx = int(total * 0.8)
+            
+            train_paths = paths[:split_idx]
+            val_paths = paths[split_idx:]
+            
+            # 2. Then apply the caps independently
+            if self.split == "train":
+                paths = train_paths[:MAX_TRAIN_IMAGES_PER_CLASS]
+            elif self.split == "val":
+                paths = val_paths[:MAX_VAL_IMAGES_PER_CLASS]
+            else:
+                paths = train_paths[:MAX_TRAIN_IMAGES_PER_CLASS] + val_paths[:MAX_VAL_IMAGES_PER_CLASS]
+                
             self.samples.extend(paths)
 
     def __len__(self) -> int:

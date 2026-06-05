@@ -28,7 +28,6 @@ def get_train_transforms(target_size: int = 224) -> v2.Compose:
     Returns the aggressive training transforms pipeline using torchvision v2.
     """
     return v2.Compose([
-        CheckSquarePadTransform(fill=0),
         v2.Resize(target_size, antialias=True),
         v2.CenterCrop(target_size),
         v2.RandomRotation(degrees=45),
@@ -46,7 +45,6 @@ def get_val_transforms(target_size: int = 224) -> v2.Compose:
     Returns the validation pipeline using torchvision v2.
     """
     return v2.Compose([
-        CheckSquarePadTransform(fill=0),
         v2.Resize(target_size, antialias=True),
         v2.CenterCrop(target_size),
         v2.ToImage(),
